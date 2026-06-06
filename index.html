@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>👑 HY HY TASK 👑</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div id="loading" class="overlay">
+    <div class="spinner-border text-dark" style="width: 2.5rem; height: 2.5rem; color: var(--primary-color) !important;"></div>
+  </div>
+
+  <div class="header-box shadow">
+    <div class="btn-menu" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu"><i class="fa-solid fa-feather"></i></div>
+    <h1>👑 HY HY TASK 👑</h1>
+  </div>
+
+  <div class="day-nav-bar">
+    <button class="btn-nav-day" id="btnNavPrev" onclick="adjustSelectedDate(-1)"><i class="fa-solid fa-crown"></i> Trước</button>
+    <div class="calendar-center-box" onclick="resetToToday()" title="Bấm để về ngày hôm nay">
+      <p class="solar-txt" id="solarDateDisplay">--/--/----</p>
+      <p class="lunar-txt" id="lunarDateDisplay">Âm lịch: --/--</p>
+      <p class="clock-txt" id="liveClockDisplay"><i class="fa-regular fa-clock"></i> 00:00:00</p>
+    </div>
+    <button class="btn-nav-day" id="btnNavNext" onclick="adjustSelectedDate(1)">Sau <i class="fa-solid fa-gem"></i></button>
+  </div>
+
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu">
+    <div class="offcanvas-header text-dark py-3" style="background: linear-gradient(135deg, #E3C16F, #F2E3C6) !important;">
+      <h5 class="offcanvas-title fw-bold" style="color: #4A3E2D;">🔱 PHÒNG ĐIỀU HÀNH</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body p-0" style="background-color: #FAF8F2;">
+      <a href="#" class="sidebar-link active" id="menu-link-task" onclick="switchView('task', this)"><i class="fa-solid fa-wand-magic-sparkles"></i> Danh sách Task</a>
+      <a href="#" class="sidebar-link" id="menu-link-calendar" onclick="switchView('calendar', this)"><i class="fa-solid fa-calendar-check"></i> Bảng lịch năm</a>
+      <a href="#" class="sidebar-link" id="menu-link-dashboard" onclick="switchView('dashboard', this)"><i class="fa-solid fa-chart-pie"></i> Báo cáo Dashboard</a>
+    </div>
+  </div>
+
+  <main class="container-fluid">
+    <div id="view-task" class="view-content active">
+      <div class="accordion" id="taskMainAccordion">
+        <div class="accordion-item accordion-luxury-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button accordion-luxury-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAddForm">
+              <i class="fa-solid fa-circle-plus me-2 text-muted"></i> KHỞI TẠO NHIỆM VỤ MỚI
+            </button>
+          </h2>
+          <div id="collapseAddForm" class="accordion-collapse collapse show" data-bs-parent="#taskMainAccordion">
+            <div class="accordion-body accordion-luxury-body">
+              <div class="card p-3">
+                <div class="mb-3">
+                  <input type="text" id="taskContent" class="form-control form-control-sm py-2" placeholder="Nhập tên công việc đại sự...">
+                </div>
+                <div class="row g-2 mb-3">
+                  <div class="col-6">
+                    <input type="datetime-local" id="taskTime" class="form-control form-control-sm py-2">
+                  </div>
+                  <div class="col-6">
+                    <select id="taskTag" class="form-select form-select-sm py-2">
+                      <option value="👑 Quan trọng & Khẩn cấp ">👑 Quan trọng & Khẩn cấp </option>
+                      <option value="🔱 Quan trọng nhưng Không khẩn cấp" selected>🔱 Quan trọng nhưng Không khẩn cấp</option>
+                      <option value="✨ Không quan trọng nhưng Khẩn cấp">✨ Không quan trọng nhưng Khẩn cấp</option>
+                      <option value="👑 Không quan trọng & Không khẩn cấp">👑 Không quan trọng & Không khẩn cấp</option>
+                    </select>
+                  </div>
+                </div>
+                <button class="btn w-100 fw-bold py-2 shadow-sm" style="background: linear-gradient(135deg, #E3C16F, #F2E3C6); border:none; color:#4A3E2D;" onclick="addNewTask()"><i class="fa-solid fa-vault"></i> KHẮC GHI VÀO SỔ SÁCH</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item accordion-luxury-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button accordion-luxury-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTaskList">
+              <i class="fa-solid fa-scroll me-2 text-muted"></i> DANH SÁCH NHIỆM VỤ ĐANG TRIỂN KHAI
+            </button>
+          </h2>
+          <div id="collapseTaskList" class="accordion-collapse collapse show" data-bs-parent="#taskMainAccordion">
+            <div class="accordion-body accordion-luxury-body">
+              <h6 class="fw-bold px-1 mb-3 text-secondary d-flex justify-content-between align-items-center">
+                <span style="font-size: 13px; letter-spacing: 0.5px; font-weight:700;">DANH SÁCH CHI TIẾT</span>
+                <span class="badge text-dark px-2.5 py-1.5" id="taskFilterLabel" style="font-size: 12px; border-radius:8px; background-color: #E3C16F;">Hôm nay</span>
+              </h6>
+              <div id="taskList"></div>
+            </div>
+          </div>
+        </div>
+      </div> 
+    </div>
+
+    <div id="view-calendar" class="view-content">
+      <div class="card p-3 mb-4">
+        <h5 class="text-center text-dark fw-bold mb-3"><i class="fa-solid fa-chess-queen" style="color:var(--primary-color);"></i> HOÀNG KIM CẨM NANG <span id="calendarYear">2026</span></h5>
+        <div class="month-grid" id="monthGrid"></div>
+        <div class="accordion mt-3" id="calendarDetailsAccordion">
+          <div class="accordion-item accordion-luxury-item" id="daysContainer" style="display:none;">
+            <h2 class="accordion-header">
+              <button class="accordion-button accordion-luxury-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDaysGrid" id="selectedMonthTitle">
+                Chi tiết lịch trình
+              </button>
+            </h2>
+            <div id="collapseDaysGrid" class="accordion-collapse collapse show" data-bs-parent="#calendarDetailsAccordion">
+              <div class="accordion-body accordion-luxury-body">
+                <div class="days-grid" id="daysGrid"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item accordion-luxury-item" id="noteContainer" style="display:none;">
+            <h2 class="accordion-header">
+              <button class="accordion-button accordion-luxury-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNotesForm" id="selectedDayTitle">
+                <i class="fa-solid fa-thumbtack me-2"></i> Kế hoạch ngày
+              </button>
+            </h2>
+            <div id="collapseNotesForm" class="accordion-collapse collapse show" data-bs-parent="#calendarDetailsAccordion">
+              <div class="accordion-body accordion-luxury-body">
+                <div class="card p-3 bg-light mb-3 border">
+                  <div class="mb-2">
+                    <input type="text" id="noteInput" class="form-control form-control-sm py-2" placeholder="Nhập việc dự định ấp ủ...">
+                  </div>
+                  <div class="row g-2 mb-2">
+                    <div class="col-6">
+                      <input type="time" id="noteTimeInput" class="form-control form-control-sm py-2" value="00:00">
+                    </div>
+                    <div class="col-6">
+                      <select id="noteTagInput" class="form-select form-select-sm py-2">
+                        <option value="👑 Thượng khẩn">👑 Thượng khẩn</option>
+                        <option value="🔱 Quan trọng" selected>🔱 Quan trọng</option>
+                        <option value="✨ Linh hoạt">✨ Linh hoạt</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button class="btn btn-sm fw-bold w-100 py-2" style="background:#E3C16F; color:#4A3E2D; border:none;" onclick="addNote()"><i class="fa-solid fa-feather-pointed"></i> LƯU DỰ ĐỊNH</button>
+                </div>
+                <div id="dayNotesList"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-dashboard" class="view-content">
+      <div class="card p-3 mb-3 bg-white">
+        <h5 class="fw-bold text-dark mb-3 text-center"><i class="fa-solid fa-chart-line" style="color:var(--primary-color);"></i> THỐNG KÊ TIẾN ĐỘ</h5>
+        <div class="row g-2 justify-content-center">
+          <div class="col-12">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-light fw-bold text-secondary">Kiểu lọc:</span>
+              <select id="dashTimeFilter" class="form-select text-center fw-bold text-dark py-2" onchange="toggleFilterInputs()">
+                <option value="range" selected>⏳ Lọc theo khoảng (Tối đa 2 tháng)</option>
+                <option value="all">♾️ Toàn bộ thời gian</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-12" id="rangePickerBox">
+            <div class="row g-1">
+              <div class="col-6">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-secondary text-white">Từ:</span>
+                  <input type="date" id="dashRangeStart" class="form-control text-center py-2" onchange="renderDashboard()">
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-secondary text-white">Đến:</span>
+                  <input type="date" id="dashRangeEnd" class="form-control text-center py-2" onchange="renderDashboard()">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3"><div class="dashboard-card border-top border-warning border-3" onclick="showDashboardDetails('all')"><div class="dashboard-icon text-warning"><i class="fa-solid fa-list-check"></i></div><h3 id="dashTotalTasks">0</h3><p>Tổng số việc</p></div></div>
+        <div class="col-6 col-md-3"><div class="dashboard-card border-top border-success border-3" onclick="showDashboardDetails('done')"><div class="dashboard-icon text-success"><i class="fa-solid fa-circle-check"></i></div><h3 id="dashDoneTasks">0</h3><p>Đã hoàn tất</p></div></div>
+        <div class="col-6 col-md-3"><div class="dashboard-card border-top border-danger border-3" onclick="showDashboardDetails('pending')"><div class="dashboard-icon text-danger"><i class="fa-solid fa-hourglass-half"></i></div><h3 id="dashPendingTasks">0</h3><p>Tồn đọng</p></div></div>
+        <div class="col-6 col-md-3"><div class="dashboard-card border-top border-info border-3" onclick="showDashboardDetails('note')"><div class="dashboard-icon text-info"><i class="fa-solid fa-lightbulb"></i></div><h3 id="dashTotalNotes">0</h3><p>Ý tưởng ấp ủ</p></div></div>
+      </div>
+
+      <div class="card p-3 text-center bg-white mb-3">
+        <h6 class="fw-bold text-secondary mb-2" style="font-size:12px; letter-spacing:0.5px;">HIỆU SUẤT ĐẠT ĐƯỢC</h6>
+        <div class="progress mb-2" style="height: 20px; border-radius: 10px; background-color:#F5F5F5; border: 1px solid #E3C16F;">
+          <div id="dashProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar" style="width: 0%; font-weight: bold; font-size: 12px; color:#4A3E2D;">0%</div>
+        </div>
+        <small class="text-muted fw-medium" id="dashProgressText">Chúc bạn một ngày vạn sự hanh thông!</small>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" style="border-radius:20px; overflow:hidden; border: 1.5px solid var(--primary-color);">
+        <div class="modal-header py-3" style="background: linear-gradient(135deg, #E3C16F, #F2E3C6) !important; color:#4A3E2D !important;">
+          <h6 class="modal-title fw-bold" id="editModalTitle">Chỉnh sửa thông tin</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body small p-3" style="background-color: #FAF8F2;">
+          <input type="hidden" id="editId"><input type="hidden" id="editType">
+          <div class="mb-2"><label class="fw-bold mb-1 text-secondary">Nội dung:</label><input type="text" id="editContent" class="form-control form-control-sm py-2"></div>
+          <div class="row g-2 mb-2"><div class="col-6"><label class="fw-bold mb-1 text-secondary">Ngày:</label><input type="date" id="editDate" class="form-control form-control-sm py-2"></div><div class="col-6"><label class="fw-bold mb-1 text-secondary">Giờ:</label><input type="time" id="editTime" class="form-control form-control-sm py-2"></div></div>
+          <div class="mb-2"><label class="fw-bold mb-1 text-secondary">Phân loại:</label><select id="editTag" class="form-select form-select-sm py-2"><option value="👑 Thượng khẩn">👑 Thượng khẩn</option><option value="🔱 Quan trọng">🔱 Quan trọng</option><option value="✨ Linh hoạt">✨ Linh hoạt</option></select></div>
+        </div>
+        <div class="modal-footer py-2" style="background-color: #FAF8F2;"><button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">Hủy</button><button type="button" class="btn btn-sm fw-bold px-3" style="background-color:#E3C16F; color:#4A3E2D; border:none;" onclick="saveEditData()">CẬP NHẬT</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="detailDashboardModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content" style="border-radius:20px; overflow:hidden; border: 1.5px solid var(--primary-color);">
+        <div class="modal-header py-3" style="background: linear-gradient(135deg, #F2E3C6, #E3C16F); color:#4A3E2D;">
+          <h6 class="modal-title fw-bold" id="detailModalTitle">Chi tiết danh sách</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3" id="detailModalBody" style="max-height: 400px; background-color:#FAF8F2;"></div>
+        <div class="modal-footer py-2" style="background-color:#FAF8F2;"><button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">Đóng</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="undoToastContainer" class="undo-toast-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
