@@ -1,11 +1,12 @@
 function doGet() {
-  return HtmlService.createTemplateFromFile('index')
+  return HtmlService.createTemplateFromFile('Index')
     .evaluate()
     .setTitle('👑 HY HY TASK 👑')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
+// Tự động tạo cấu trúc bảng nếu Sheets trống tinh
 function initSheets() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   if (!ss.getSheetByName("Checklist_ChiTiet")) {
@@ -35,6 +36,7 @@ function initSheets() {
   }
 }
 
+// Chuẩn hóa định dạng ngày (YYYY-MM-DD)
 function cleanDateKey(rawDate) {
   if (!rawDate) return "";
   if (rawDate instanceof Date) {
@@ -48,6 +50,7 @@ function cleanDateKey(rawDate) {
   return str;
 }
 
+// Lấy ngày hôm nay theo định dạng YYYY-MM-DD
 function getTodayString() {
   var now = new Date();
   var year = now.getFullYear();
@@ -56,6 +59,7 @@ function getTodayString() {
   return year + "-" + month + "-" + day;
 }
 
+// Đọc dữ liệu tổng hợp
 function getAppData() {
   initSheets();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -63,6 +67,7 @@ function getAppData() {
   var sheetNote = ss.getSheetByName("DuDinh_GhiChu");
   var todayStr = getTodayString();
   
+  // XỬ LÝ TỰ ĐỘNG: Chuyển Dự định -> Task khi đến ngày
   var rowsNote = sheetNote.getDataRange().getValues();
   var notesKeep = [rowsNote[0]];
   var migratedTasks = [];
@@ -94,6 +99,7 @@ function getAppData() {
     sheetNote.getRange(1, 1, notesKeep.length, 5).setValues(notesKeep);
   }
   
+  // LẤY DANH SÁCH TASK
   var rowsTask = sheetTask.getDataRange().getValues();
   var tasks = [];
   for (var i = 1; i < rowsTask.length; i++) {
@@ -120,6 +126,7 @@ function getAppData() {
     return a.time.localeCompare(b.time);
   });
   
+  // LẤY DANH SÁCH DỰ ĐỊNH CÒN LẠI
   var activeNotes = [];
   var currentNotesData = sheetNote.getDataRange().getValues();
   for (var i = 1; i < currentNotesData.length; i++) {
@@ -140,6 +147,7 @@ function getAppData() {
   };
 }
 
+// Ghi đè dữ liệu Task và trả về dữ liệu mới ngay lập tức
 function updateTasksInSheet(updatedList) {
   initSheets();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -170,10 +178,11 @@ function updateTasksInSheet(updatedList) {
     }
     sheet.getRange(2, 1, rowsToAppend.length, 7).setValues(rowsToAppend);
   }
-  SpreadsheetApp.flush();
+  SpreadsheetApp.flush(); // Đẩy dữ liệu xuống bộ lưu trữ ngay tức khắc
   return getAppData();
 }
 
+// Ghi đè dữ liệu Dự định và trả về dữ liệu mới ngay lập tức
 function updateNotesInSheet(updatedNotesList) {
   initSheets();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -183,7 +192,7 @@ function updateNotesInSheet(updatedNotesList) {
     sheet.deleteRows(2, lastRow - 1);
   }
   if (updatedNotesList && updatedNotesList.length > 0) {
-    rowsToAppend = [];
+    var rowsToAppend = [];
     for (var i = 0; i < updatedNotesList.length; i++) {
       var n = updatedNotesList[i];
       rowsToAppend.push([
@@ -196,6 +205,6 @@ function updateNotesInSheet(updatedNotesList) {
     }
     sheet.getRange(2, 1, rowsToAppend.length, 5).setValues(rowsToAppend);
   }
-  SpreadsheetApp.flush();
+  SpreadsheetApp.flush(); // Đẩy dữ liệu xuống bộ lưu trữ ngay tức khắc
   return getAppData();
 }
