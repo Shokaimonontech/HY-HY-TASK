@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root { 
-  --primary-color: #E3C16F; /* Vàng Champagne/Gấm lụa hoàng gia nhẹ dịu, không chói */
+  --primary-color: #E3C16F; /* Vàng Champagne/Gấm lụa hoàng gia nhẹ dịu */
   --primary-hover: #C5A04D;
   --bg-gradient: linear-gradient(135deg, #FAF8F2 0%, #F4EFE3 100%); 
   --card-shadow: 0 8px 20px -4px rgba(227, 193, 111, 0.12), 0 6px 8px -4px rgba(227, 193, 111, 0.06);
@@ -209,6 +209,22 @@ body {
   transition: 0.2s;
 }
 .btn-undo-action:hover { background: #FAF8F2; }
+
+/* Nút ẩn hiện nhiệm vụ phong cách hoàng gia */
+.toggle-completed-btn {
+  background: white;
+  border: 1px solid rgba(227, 193, 111, 0.4);
+  color: #6E614F;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+.toggle-completed-btn:hover {
+  background: #4A3E2D;
+  color: #FAF8F2;
+}
 </style>
 </head>
 <body>
@@ -296,9 +312,14 @@ body {
       </h2>
       <div id="collapseTaskList" class="accordion-collapse collapse show" data-bs-parent="#taskMainAccordion">
         <div class="accordion-body accordion-luxury-body">
-          <h6 class="fw-bold px-1 mb-3 text-secondary d-flex justify-content-between align-items-center">
-          <span style="font-size: 13px; letter-spacing: 0.5px; font-weight:700;">DANH SÁCH CHI TIẾT</span>
-          <span class="badge text-dark px-2.5 py-1.5" id="taskFilterLabel" style="font-size: 12px; border-radius:8px; background-color: #E3C16F;">Hôm nay</span>
+          <h6 class="fw-bold px-1 mb-3 text-secondary d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              <span style="font-size: 13px; letter-spacing: 0.5px; font-weight:700;">DANH SÁCH CHI TIẾT</span>
+              <span class="badge text-dark px-2.5 py-1.5 ms-1" id="taskFilterLabel" style="font-size: 12px; border-radius:8px; background-color: #E3C16F;">Hôm nay</span>
+            </div>
+            <button class="toggle-completed-btn" id="btnToggleCompleted" onclick="toggleShowCompletedTasks()">
+              <i class="fa-solid fa-eye-slash"></i> Ẩn việc đã xong
+            </button>
           </h6>
           <div id="taskList"></div>
         </div>
@@ -458,6 +479,9 @@ let filteredDashboardNotes = [];
 let currentSelectedDate = new Date();
 let isPollingActive = false; 
 
+// Biến kiểm soát trạng thái ẩn/hiện task đã xong trên web (mặc định là TRUE - ẩn đi)
+let showCompletedTasks = false; 
+
 // Thông tin liên kết độc lập
 let appScriptApiUrl = "";
 let googleSheetId = "";
@@ -472,7 +496,7 @@ const monthPastelColors = [
   { background: "#FCE7F3", text: "#9D174D", label: "Hồng phấn hoa sen" },    
   { background: "#E0F2FE", text: "#0369A1", label: "Xanh da trời nhạt" },    
   { background: "#F1F5F9", text: "#334155", label: "Xám sương mù nhã nhặn" },
-  { background: "#FEF2F2", text: "#991B1B", label: "Đỏ lựu pastel" },       
+  { background: "#FEF2F2", text: "#991B1B", label: "Đỏ lựu pastel" },        
   { background: "#ECFDF5", text: "#065F46", label: "Xanh lá lục bảo nhẹ" }, 
   { background: "#FFFBEB", text: "#92400E", label: "Màu trà sữa ấm áp" }    
 ];
@@ -489,7 +513,7 @@ function getLunarDate2026(day, month, year) {
   let lunarDay = 1;
   for(let i=0; i<lunarMonths2026.length; i++) {
     if(daysLeft < lunarMonths2026[i]) {
-      lunarMonth = i + 1;
+      mouseMonth = i + 1;
       lunarDay = daysLeft + 1;
       break;
     }
@@ -523,6 +547,13 @@ document.addEventListener("DOMContentLoaded", function() {
   
   document.getElementById("appScriptUrlInput").value = appScriptApiUrl;
   document.getElementById("googleSheetIdInput").value = googleSheetId;
+
+  // Đọc cấu hình bộ lọc ẩn hiện task từ local
+  const savedToggle = localStorage.getItem("hyhy_show_completed");
+  if(savedToggle !== null) {
+    showCompletedTasks = (savedToggle === 'true');
+  }
+  updateToggleButtonUI();
 
   resetToToday();
   loadDataFromServer(true); 
@@ -583,7 +614,7 @@ function resetToToday() {
   renderTasks(localTasks);
 }
 
-// FETCH DATA TỪ WEB API GỬI KÈM SHEET ID
+// FETCH DATA TỪ WEB API
 function loadDataFromServer(shouldShowSpinner) {
   if (!appScriptApiUrl || !googleSheetId) {
     console.warn("Chưa cấu hình đầy đủ API hoặc ID Google Sheet.");
@@ -628,6 +659,7 @@ function syncDataFromSheetSilently() {
     });
 }
 
+// SỬA ĐỔI: Chuyển hoàn toàn phương thức đẩy data sang POST JSON Body chuẩn chỉnh
 function postDataToSheet(actionType, dataPayload) {
   if (!appScriptApiUrl || !googleSheetId) {
     alert("Vui lòng cấu hình đầy đủ Link API và ID Google Sheet tại thanh điều hành!");
@@ -635,10 +667,21 @@ function postDataToSheet(actionType, dataPayload) {
   }
   
   showLoading(true);
-  const encodedData = encodeURIComponent(JSON.stringify(dataPayload));
-  const targetUrl = `${appScriptApiUrl}?action=${actionType}&sheetId=${googleSheetId}&payload=${encodedData}`;
+  
+  const bodyPayload = {
+    action: actionType,
+    sheetId: googleSheetId,
+    data: dataPayload
+  };
 
-  fetch(targetUrl)
+  fetch(appScriptApiUrl, {
+    method: "POST",
+    mode: "cors",
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8" 
+    },
+    body: JSON.stringify(bodyPayload)
+  })
     .then(res => res.json())
     .then(data => {
       if (data.error) {
@@ -651,7 +694,7 @@ function postDataToSheet(actionType, dataPayload) {
       showLoading(false);
     })
     .catch(err => {
-      console.error("Lỗi kết nối long mạch: ", err);
+      console.error("Lỗi kết nối đồng bộ POST: ", err);
       showLoading(false);
       refreshAllViews();
     });
@@ -672,6 +715,27 @@ function toggleFilterInputs() {
   const mode = document.getElementById('dashTimeFilter').value;
   document.getElementById('rangePickerBox').style.display = (mode === 'range') ? 'block' : 'none';
   renderDashboard();
+}
+
+// HÀM TOGGLE ĐIỀU KHIỂN ẨN/HIỆN TASK ĐÃ HOÀN THÀNH
+function toggleShowCompletedTasks() {
+  showCompletedTasks = !showCompletedTasks;
+  localStorage.setItem("hyhy_show_completed", showCompletedTasks);
+  updateToggleButtonUI();
+  renderTasks(localTasks);
+}
+
+function updateToggleButtonUI() {
+  const btn = document.getElementById("btnToggleCompleted");
+  if(showCompletedTasks) {
+    btn.innerHTML = `<i class="fa-solid fa-eye"></i> Hiện việc đã xong`;
+    btn.style.backgroundColor = "#E3C16F";
+    btn.style.color = "#4A3E2D";
+  } else {
+    btn.innerHTML = `<i class="fa-solid fa-eye-slash"></i> Ẩn việc đã xong`;
+    btn.style.backgroundColor = "white";
+    btn.style.color = "#6E614F";
+  }
 }
 
 function renderDashboard() {
@@ -729,6 +793,8 @@ function renderTasks(tasks) {
   const listContainer = document.getElementById('taskList');
   listContainer.innerHTML = '';
   const targetDateStr = getFormatDateString(currentSelectedDate);
+  
+  // Lọc task của ngày hiện tại
   let filtered = tasks.filter(t => t.date === targetDateStr);
 
   if (!filtered || filtered.length === 0) {
@@ -736,8 +802,17 @@ function renderTasks(tasks) {
     return;
   }
 
+  let visibleTasksCount = 0;
+
   filtered.forEach(task => {
     const isDone = task.status === "Đã xong";
+    
+    // NẾU CHỌN ẨN TASK ĐÃ XONG VÀ TASK NÀY ĐÃ XONG -> THÌ BỎ QUA KHÔNG RENDER
+    if (showCompletedTasks && isDone) {
+      return; 
+    }
+    
+    visibleTasksCount++;
     const formattedTime = task.time ? ' | ⏰ Giờ: ' + task.time : '';
     const taskHtml = `
     <div class="task-item" id="task-dom-${task.id}">
@@ -756,6 +831,10 @@ function renderTasks(tasks) {
     `;
     listContainer.insertAdjacentHTML('beforeend', taskHtml);
   });
+
+  if(visibleTasksCount === 0 && filtered.length > 0) {
+    listContainer.innerHTML = '<div class="text-center text-muted my-4 small fw-medium"><i class="fa-solid fa-circle-check text-success"></i> Các nhiệm vụ đều đã hoàn thành và được ẩn đi.</div>';
+  }
 }
 
 function addNewTask() {
@@ -807,6 +886,8 @@ function toggleStatus(id) {
     if (t.id === id) t.status = (t.status === "Đã xong") ? "Chưa xong" : "Đã xong";
     return t;
   });
+  
+  // Tạo trải nghiệm mượt mà bằng cách re-render giao diện trước rồi đẩy lên cloud sau
   refreshAllViews();
   postDataToSheet("updateTasks", localTasks);
 }
@@ -992,7 +1073,7 @@ function openEditModal(type, id) {
     document.getElementById('editTime').value = taskObj.time || "00:00";
     document.getElementById('editTag').value = taskObj.tag || "🔱 Quan trọng";
   } else if (type === 'note') {
-    document.getElementById('editModalTitle').innerText = "CHỈNH SỬA Ý TƯỞOWNG LỊCH NĂM";
+    document.getElementById('editModalTitle').innerText = "CHỈNH SỬA Ý TƯỞNG LỊCH NĂM";
     const noteObj = localNotes.find(n => n.id === id);
     if (!noteObj) return;
     document.getElementById('editContent').value = noteObj.content;
@@ -1163,7 +1244,6 @@ function showDashboardDetails(type) {
   bsDetailModal.show();
 }
 
-// BẬT CHỨC NĂNG CHUYỂN ĐỔI VIEW GIAO DIỆN
 function switchView(viewName, element) {
   document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
   document.getElementById('view-' + viewName).classList.add('active');
