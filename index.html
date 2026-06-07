@@ -20,7 +20,7 @@ body { background: var(--bg-gradient); font-family: 'Plus Jakarta Sans', sans-se
 .header-box h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
 .btn-menu { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #4A3E2D; font-size: 20px; cursor: pointer; transition: 0.3s; }
 .btn-menu:hover { transform: translateY(-50%) scale(1.1); }
-.day-nav-bar { display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); margin: 0 15px 20px 15px; padding: 12px 18px; border-radius: 18px; box-shadow: var(--card-shadow); border: 1px solid rgba(227, 193, 111, 0.3); }
+.day-nav-bar { display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); margin: 0 15px 10px 15px; padding: 12px 18px; border-radius: 18px; box-shadow: var(--card-shadow); border: 1px solid rgba(227, 193, 111, 0.3); }
 .btn-nav-day { background: white; border: 1px solid #EAE1CC; padding: 8px 14px; font-size: 13px; font-weight: 700; border-radius: 12px; color: #6E614F; transition: all 0.2s ease; }
 .btn-nav-day:hover { background: var(--primary-color); color: #4A3E2D; border-color: var(--primary-color); }
 .calendar-center-box { text-align: center; flex-grow: 1; margin: 0 10px; cursor: pointer; padding: 4px; border-radius: 12px; transition: 0.2s; }
@@ -28,6 +28,14 @@ body { background: var(--bg-gradient); font-family: 'Plus Jakarta Sans', sans-se
 .solar-txt { font-size: 18px; font-weight: 800; color: #4A3E2D; margin: 0; }
 .lunar-txt { font-size: 12px; color: #C85C42; font-weight: 700; margin: 2px 0 0 0; }
 .clock-txt { font-size: 12px; color: #407BCA; font-weight: 700; margin: 2px 0 0 0; letter-spacing: 0.5px; }
+
+/* Thanh điều phối đồng bộ dữ liệu mới */
+.sync-control-bar { display: flex; gap: 10px; margin: 0 15px 20px 15px; }
+.btn-sync-action { flex: 1; border: none; border-radius: 12px; padding: 10px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--card-shadow); transition: all 0.2s; text-transform: uppercase; }
+.btn-sync-pull { background: linear-gradient(135deg, #7C3AED, #A78BFA); color: white; }
+.btn-sync-push { background: linear-gradient(135deg, #EA580C, #FB923C); color: white; }
+.btn-sync-action:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
 .sidebar-link { display: flex; align-items: center; padding: 16px 24px; color: #6E614F; text-decoration: none; border-bottom: 1px solid #F4EFE3; font-weight: 600; transition: 0.3s; }
 .sidebar-link:hover, .sidebar-link.active { background-color: #FAF8F2; color: #AA823B; border-left: 5px solid var(--primary-color); font-weight: 700; }
 .sidebar-link i { margin-right: 12px; width: 22px; text-align: center; font-size: 18px; }
@@ -93,6 +101,15 @@ body { background: var(--bg-gradient); font-family: 'Plus Jakarta Sans', sans-se
 <p class="clock-txt" id="liveClockDisplay"><i class="fa-regular fa-clock"></i> 00:00:00</p>
 </div>
 <button class="btn-nav-day" id="btnNavNext" onclick="adjustSelectedDate(1)">Sau <i class="fa-solid fa-gem"></i></button>
+</div>
+
+<div class="sync-control-bar">
+  <button class="btn-sync-action btn-sync-pull" onclick="manualPullData()" title="Xóa dữ liệu web, tải bản mới nhất từ Google Sheets">
+    <i class="fa-solid fa-cloud-arrow-down"></i> Đọc từ Sheet về Web
+  </button>
+  <button class="btn-sync-action btn-sync-push" onclick="manualPushData()" title="Đẩy toàn bộ dữ liệu web hiện tại ghi đè lên Google Sheets">
+    <i class="fa-solid fa-cloud-arrow-up"></i> Đẩy từ Web lên Sheet
+  </button>
 </div>
 
 <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu">
@@ -318,7 +335,8 @@ let filteredDashboardTasks = [];
 let filteredDashboardNotes = [];
 let currentSelectedDate = new Date();
 let isPollingActive = false;
-let API_URL = ""; // Lưu Link Web App Google Script công khai
+let isUserTyping = false; // Cờ kiểm tra tránh nạp đè khi đang gõ
+let API_URL = ""; 
 
 const monthPastelColors = [
   { background: "#E8F0FE", text: "#1A567D" }, { background: "#E6F4EA", text: "#137333" },
@@ -351,34 +369,53 @@ function startLiveClock() {
   }, 1000);
 }
 
-// CÁC HÀM LUÂN CHUYỂN DỮ LIỆU HTTP (THAY THẾ GOOGLE.SCRIPT.RUN)
 function callFetchGET(callback) {
   if(!API_URL) return;
   fetch(API_URL)
     .then(res => res.json())
     .then(resData => { if(resData.status === "success") callback(resData.data); })
-    .catch(err => console.error("Lỗi tải long mạch hệ thống:", err));
+    .catch(err => console.error("Lỗi tải dữ liệu hệ thống:", err));
 }
 
 function callFetchPOST(payload, callback) {
   if(!API_URL) { alert("Chưa cấu hình URL API kết nối trong mục Cài đặt!"); return; }
   fetch(API_URL, {
     method: "POST",
-    mode: "no-cors", // Tránh lỗi CORS chặn cross-origin trình duyệt khi dùng Google Script App
+    mode: "no-cors",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   }).then(() => {
-    // Vì chế độ no-cors không đọc trực tiếp nội dung trả về thành công, 
-    // chúng ta sẽ chủ động kéo lại cục data sạch sau 800ms để tối ưu tốc độ đồng bộ.
-    setTimeout(() => { loadDataFromServer(false); }, 800);
+    if(callback) callback();
   }).catch(err => console.error("Lỗi truyền tin:", err));
+}
+
+// 1. CHỨC NĂNG ĐỒNG BỘ: ĐỌC DỮ LIỆU TỪ SHEET VỀ WEB (THỦ CÔNG)
+function manualPullData() {
+  showLoading(true);
+  callFetchGET(function(data) {
+    localTasks = data.tasks || [];
+    localNotes = data.notes || [];
+    refreshAllViews();
+    showLoading(false);
+    alert("📥 Đã tải và đồng bộ toàn bộ dữ liệu mới nhất từ Google Sheets về máy!");
+  });
+}
+
+// 2. CHỨC NĂNG ĐỒNG BỘ: ĐẨY DỮ LIỆU TỪ WEB LÊN SHEET (THỦ CÔNG)
+function manualPushData() {
+  showLoading(true);
+  callFetchPOST({ action: "syncAll", tasks: localTasks, notes: localNotes }, function() {
+    setTimeout(() => {
+      showLoading(false);
+      alert("📤 Đã đẩy đè và đồng bộ toàn bộ dữ liệu hiện tại lên Google Sheets thành công!");
+    }, 1000);
+  });
 }
 
 document.addEventListener("DOMContentLoaded", function() {
   bsEditModal = new bootstrap.Modal(document.getElementById('editModal'));
   bsDetailModal = new bootstrap.Modal(document.getElementById('detailDashboardModal'));
   
-  // Tải cấu hình link AppScript đã lưu trước đó từ bộ nhớ máy
   API_URL = localStorage.getItem("hyhy_api_url") || "";
   document.getElementById("settingAppScriptUrl").value = API_URL;
 
@@ -387,16 +424,28 @@ document.addEventListener("DOMContentLoaded", function() {
   let nextMonth = new Date(); nextMonth.setMonth(nextMonth.getMonth() + 1);
   document.getElementById('dashRangeEnd').value = getFormatDateString(nextMonth);
 
+  // Giám sát trạng thái nhập liệu của người dùng
+  const monitorInputs = ['taskContent', 'noteInput'];
+  monitorInputs.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) {
+      el.addEventListener('focus', () => { isUserTyping = true; });
+      el.addEventListener('blur', () => { isUserTyping = false; });
+    }
+  });
+
   resetToToday();
   renderMonthsList();
   startLiveClock();
 
   if(API_URL) {
     loadDataFromServer(true);
-    setInterval(function() { if (!isPollingActive) syncDataFromSheetSilently(); }, 12000);
+    // Vòng lặp đồng bộ ngầm thông minh tự động bỏ qua nếu người dùng đang thao tác nhập liệu
+    setInterval(function() { 
+      if (!isPollingActive && !isUserTyping) { syncDataFromSheetSilently(); } 
+    }, 15000);
   } else {
-    const menuLinkSettings = document.getElementById('menu-link-settings');
-    switchView('settings', menuLinkSettings);
+    switchView('settings', document.getElementById('menu-link-settings'));
     alert("👑 Chào mừng đến với HY HY TASK! Vui lòng thiết lập cấu hình đường dẫn API Apps Script để bắt đầu vận hành.");
   }
 });
@@ -408,8 +457,7 @@ function saveSystemSettings() {
   API_URL = urlVal;
   alert("🎉 Cấu hình kết nối thành công! Đang đồng bộ dữ liệu...");
   loadDataFromServer(true);
-  const menuLinkTask = document.getElementById('menu-link-task');
-  switchView('task', menuLinkTask);
+  switchView('task', document.getElementById('menu-link-task'));
 }
 
 function getFormatDateString(dateObj) {
@@ -449,7 +497,7 @@ function loadDataFromServer(shouldShowSpinner) {
 }
 
 function syncDataFromSheetSilently() {
-  if (!API_URL) return;
+  if (!API_URL || isUserTyping) return;
   isPollingActive = true;
   callFetchGET(function(data) {
     localTasks = data.tasks || [];
@@ -543,8 +591,11 @@ function addNewTask() {
     content: content, time: dateParts[1] ? dateParts[1].substring(0, 5) : "00:00",
     tag: document.getElementById('taskTag').value, status: "Chưa xong", id: "ID_" + new Date().getTime()
   });
+  
   refreshAllViews();
   document.getElementById('taskContent').value = ''; document.getElementById('taskTime').value = '';
+  
+  // Lưu cục bộ trước rồi gửi cập nhật lên hệ thống
   callFetchPOST({ action: "updateTasks", list: localTasks });
 }
 
@@ -659,6 +710,7 @@ function addNote() {
   callFetchPOST({ action: "updateNotes", list: localNotes });
 }
 
+// Xử lý các sự kiện phụ và điều hướng DashBoard dữ liệu giữ nguyên cấu trúc
 function deleteNote(id) {
   const deletedNote = localNotes.find(n => n.id === id); if (!deletedNote) return;
   localNotes = localNotes.filter(n => n.id !== id); refreshAllViews();
