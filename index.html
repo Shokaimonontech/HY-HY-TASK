@@ -59,12 +59,22 @@ body { background: var(--bg-gradient); font-family: 'Plus Jakarta Sans', sans-se
 .stt-badge { background: #5C5042; color: #FAF8F2; font-size: 11px; padding: 3px 8px; border-radius: 8px; margin-right: 10px; font-weight: 700; }
 .form-check-input { width: 20px; height: 20px; cursor: pointer; }
 
-.dashboard-card { background: white; border-radius: 18px; padding: 20px 12px; box-shadow: var(--card-shadow); text-align: center; }
+.dashboard-card { background: white; border-radius: 18px; padding: 20px 12px; box-shadow: var(--card-shadow); text-align: center; cursor: pointer; transition: all 0.2s; }
+.dashboard-card:hover { transform: translateY(-4px); }
 .dashboard-card h3 { margin: 8px 0 2px 0; font-size: 30px; font-weight: 800; }
 .dashboard-card p { color: #8A7E70; margin: 0; font-size: 12px; font-weight: 700; text-transform: uppercase; }
 
 .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
-.pop-list-item { background: #FAF8F2; border-left: 5px solid #E3C16F; padding: 12px; border-radius: 0 14px 14px 0; margin-bottom: 10px; font-size: 14px; cursor: pointer; }
+.pop-list-item { background: #FAF8F2; border-left: 5px solid #E3C16F; padding: 12px; border-radius: 0 14px 14px 0; margin-bottom: 10px; font-size: 14px; cursor: pointer; transition: 0.2s; }
+.pop-list-item:hover { background: #F4EFE3; transform: translateX(4px); }
+
+@keyframes flashHighlight {
+  0% { background-color: #E3C16F; color: white; }
+  50% { background-color: white; }
+  100% { background-color: #FAF8F2; border-left-color: #E3C16F; }
+}
+.highlight-flash { animation: flashHighlight 1.5s ease-in-out forwards; }
+
 .undo-toast-container { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; }
 .undo-toast { background: #4A3E2D; color: #FAF8F2; padding: 12px 16px; border-radius: 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: space-between; }
 .btn-undo-action { background: #E3C16F; border: none; color: #4A3E2D; font-weight: 800; padding: 4px 12px; border-radius: 8px; font-size: 12px; }
@@ -257,6 +267,7 @@ body { background: var(--bg-gradient); font-family: 'Plus Jakarta Sans', sans-se
 </div>
 </main>
 
+<!-- Modals -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
 <div class="modal-dialog modal-dialog-centered">
 <div class="modal-content" style="border-radius:20px; overflow:hidden; border: 1.5px solid var(--primary-color);">
@@ -293,7 +304,6 @@ body { background: var(--bg-gradient); font-family: 'Plus Jakarta Sans', sans-se
 <script>
 let localTasks = JSON.parse(localStorage.getItem('HY_HY_TASKS')) || [];
 let localNotes = JSON.parse(localStorage.getItem('HY_HY_NOTES')) || [];
-// BIẾN ĐIỀU KHIỂN TRẠNG THÁI ẨN NHIỆM VỤ ĐÃ TICK HOÀN THÀNH
 let hideDoneTasksState = localStorage.getItem('HY_HY_HIDE_DONE') === 'true';
 
 let currentYear = 2026;
@@ -326,16 +336,59 @@ function toggleHideDoneTasks() {
   renderTasks(localTasks);
 }
 
+// HÀM ĐIỀU HƯỚNG TỪ DASHBOARD VỀ TASK CHỈ ĐỊNH
+function navigateToTaskFromDashboard(dateStr, taskId) {
+  bsDetailModal.hide();
+  const parts = dateStr.split("-");
+  currentSelectedDate = new Date(parts[0], parts[1] - 1, parts[2]);
+  updateQuickCalendarDisplay(currentSelectedDate);
+  
+  // Tự động tắt bộ lọc ẩn việc đã xong nếu task đích đến là task đã xong, tránh lỗi không tìm thấy DOM
+  const targetTask = localTasks.find(t => t.id === taskId);
+  if (targetTask && targetTask.status === "Đã xong" && hideDoneTasksState) {
+    toggleHideDoneTasks(); 
+  }
+  
+  const menuLinkTask = document.getElementById('menu-link-task');
+  switchView('task', menuLinkTask);
+  
+  setTimeout(() => {
+    const element = document.getElementById(`task-dom-${taskId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.classList.add('highlight-flash');
+      setTimeout(() => { element.classList.remove('highlight-flash'); }, 3000);
+    }
+  }, 350);
+}
+
+// HÀM ĐIỀU HƯỚNG TỪ DASHBOARD VỀ LỊCH TRÌNH CẨM NANG
+function navigateToCalendarFromDashboard(dateStr) {
+  bsDetailModal.hide();
+  const parts = dateStr.split("-");
+  const monthIdx = parseInt(parts[1], 10) - 1;
+  
+  const monthCards = document.querySelectorAll('.month-card');
+  if(monthCards[monthIdx]) {
+    monthCards.forEach(c => c.classList.remove('active'));
+    monthCards[monthIdx].classList.add('active');
+  }
+  
+  selectMonth(monthIdx);
+  selectDay(dateStr);
+  
+  const menuLinkCalendar = document.getElementById('menu-link-calendar');
+  switchView('calendar', menuLinkCalendar);
+}
+
 function updateHideDoneButtonUI() {
   const btn = document.getElementById('btnToggleHideDone');
   if(hideDoneTasksState) {
     btn.innerHTML = "🙈 Ẩn việc đã xong";
-    btn.classList.add('btn-dark');
-    btn.classList.remove('btn-outline-dark');
+    btn.className = "btn btn-xs fw-bold px-2 py-1 border text-dark btn-dark text-white";
   } else {
     btn.innerHTML = "👁️ Hiện tất cả việc";
-    btn.classList.remove('btn-dark');
-    btn.classList.add('btn-outline-dark');
+    btn.className = "btn btn-xs fw-bold px-2 py-1 border text-dark bg-white";
   }
 }
 
@@ -494,7 +547,6 @@ function toggleFilterInputs() {
   renderDashboard();
 }
 
-// HÀM RENDER ĐÃ TÍCH HỢP BỘ LỌC ẨN TASK HOÀN THÀNH
 function renderTasks(tasks) {
   const listContainer = document.getElementById('taskList');
   listContainer.innerHTML = '';
@@ -502,7 +554,6 @@ function renderTasks(tasks) {
   
   let filtered = tasks.filter(t => t.date === targetDateStr);
 
-  // Thực hiện ẩn nếu trạng thái hideDoneTasksState là True
   if(hideDoneTasksState) {
     filtered = filtered.filter(t => t.status !== "Đã xong");
   }
@@ -516,7 +567,7 @@ function renderTasks(tasks) {
     const isDone = task.status === "Đã xong";
     const formattedTime = task.time ? ' | ⏰ Giờ: ' + task.time : '';
     const taskHtml = `
-    <div class="task-item">
+    <div class="task-item" id="task-dom-${task.id}">
       <input type="checkbox" class="form-check-input me-3 flex-shrink-0" ${isDone ? 'checked' : ''} onchange="toggleStatus('${task.id}')">
       <div class="task-clickable ${isDone ? 'task-done' : ''}" onclick="openEditModal('task', '${task.id}')">
         <div style="font-size: 14px; word-break: break-all;">
@@ -672,18 +723,36 @@ function renderDashboard() {
   document.getElementById('dashProgressBar').style.width = percent + '%'; document.getElementById('dashProgressBar').innerText = percent + '%';
 }
 
+// KHÔI PHỤC HOÀN TOÀN TÍNH NĂNG NHẤP CHỌN LIÊN KẾT ĐIỀU HƯỚNG TẠI ĐÂY
 function showDashboardDetails(type) {
   const titleEl = document.getElementById('detailModalTitle'); const bodyEl = document.getElementById('detailModalBody');
   bodyEl.innerHTML = ''; let html = '';
+  
   if (type === 'all' || type === 'done' || type === 'pending') {
     let list = filteredDashboardTasks;
     if (type === 'done') list = filteredDashboardTasks.filter(t => t.status === "Đã xong");
     if (type === 'pending') list = filteredDashboardTasks.filter(t => t.status !== "Đã xong");
+    
     titleEl.innerText = "CHI TIẾT NHIỆM VỤ";
-    list.forEach(t => { html += `<div class="pop-list-item"><strong>[${t.status}] ${t.content}</strong><br><small>Ngày: ${t.date}</small></div>`; });
+    list.forEach(t => { 
+      const isDone = t.status === "Đã xong";
+      html += `
+      <div class="pop-list-item" style="border-left-color: ${isDone ? '#10b981' : '#E3C16F'}" onclick="navigateToTaskFromDashboard('${t.date}', '${t.id}')">
+        <span class="badge ${isDone ? 'bg-success' : 'text-dark'} float-end" style="${!isDone ? 'background-color:#E3C16F;' : ''}">${t.status}</span>
+        <span class="stt-badge">${t.stt}</span> <strong>${t.content}</strong>
+        <div class="text-muted mt-1" style="font-size: 11px;">📅 Ngày: ${t.date} ${t.time ? '| ⏰ Giờ: ' + t.time : ''} | 📌 Phân loại: ${t.tag}</div>
+      </div>`; 
+    });
   } else {
     titleEl.innerText = "Ý TƯỞNG TƯƠNG LAI";
-    filteredDashboardNotes.forEach(n => { html += `<div class="pop-list-item"><strong>📌 ${n.content}</strong><br><small>Dự kiến: ${n.date}</small></div>`; });
+    filteredDashboardNotes.forEach(n => { 
+      html += `
+      <div class="pop-list-item" style="border-left-color: #06B6D4" onclick="navigateToCalendarFromDashboard('${n.date}')">
+        <span class="badge bg-info text-white float-end">Dự định</span>
+        <strong>📌 ${n.content}</strong>
+        <div class="text-muted mt-1" style="font-size: 11px;">📅 Dự kiến: ${n.date} | ⏰ Giờ: ${n.time} | 📌 Cấp bậc: ${n.tag}</div>
+      </div>`; 
+    });
   }
   bodyEl.innerHTML = html || '<div class="text-center p-3 text-muted">Trống không!</div>'; bsDetailModal.show();
 }
