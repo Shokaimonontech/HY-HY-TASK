@@ -641,6 +641,7 @@ function loadDataFromServer(shouldShowSpinner) {
     });
 }
 
+// SỬA ĐỔI: Ép hàm sync ngầm luôn gửi đúng ID Google Sheet lưu trên giao diện web
 function syncDataFromSheetSilently() {
   if (!appScriptApiUrl || !googleSheetId) return;
   isPollingActive = true;
@@ -659,7 +660,6 @@ function syncDataFromSheetSilently() {
     });
 }
 
-// SỬA ĐỔI: Chuyển hoàn toàn phương thức đẩy data sang POST JSON Body chuẩn chỉnh
 function postDataToSheet(actionType, dataPayload) {
   if (!appScriptApiUrl || !googleSheetId) {
     alert("Vui lòng cấu hình đầy đủ Link API và ID Google Sheet tại thanh điều hành!");
@@ -717,7 +717,6 @@ function toggleFilterInputs() {
   renderDashboard();
 }
 
-// HÀM TOGGLE ĐIỀU KHIỂN ẨN/HIỆN TASK ĐÃ HOÀN THÀNH
 function toggleShowCompletedTasks() {
   showCompletedTasks = !showCompletedTasks;
   localStorage.setItem("hyhy_show_completed", showCompletedTasks);
@@ -794,7 +793,6 @@ function renderTasks(tasks) {
   listContainer.innerHTML = '';
   const targetDateStr = getFormatDateString(currentSelectedDate);
   
-  // Lọc task của ngày hiện tại
   let filtered = tasks.filter(t => t.date === targetDateStr);
 
   if (!filtered || filtered.length === 0) {
@@ -807,7 +805,6 @@ function renderTasks(tasks) {
   filtered.forEach(task => {
     const isDone = task.status === "Đã xong";
     
-    // NẾU CHỌN ẨN TASK ĐÃ XONG VÀ TASK NÀY ĐÃ XONG -> THÌ BỎ QUA KHÔNG RENDER
     if (showCompletedTasks && isDone) {
       return; 
     }
@@ -887,7 +884,6 @@ function toggleStatus(id) {
     return t;
   });
   
-  // Tạo trải nghiệm mượt mà bằng cách re-render giao diện trước rồi đẩy lên cloud sau
   refreshAllViews();
   postDataToSheet("updateTasks", localTasks);
 }
