@@ -634,15 +634,27 @@ function postDataToSheet(actionType, dataPayload) {
     return;
   }
   
-  fetch(appScriptApiUrl, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: actionType, sheetId: googleSheetId, data: dataPayload })
-  }).then(() => {
-    // Nạp lại ngầm sau 1.2 giây để kéo dữ liệu mới nhất
-    setTimeout(() => { syncDataFromSheetSilently(); }, 1200);
-  });
+  showLoading(true);
+  const encodedData = encodeURIComponent(JSON.stringify(dataPayload));
+  const targetUrl = `${appScriptApiUrl}?action=${actionType}&sheetId=${googleSheetId}&payload=${encodedData}`;
+
+  fetch(targetUrl)
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        alert("Lỗi đồng bộ: " + data.error);
+      } else {
+        localTasks = data.tasks || [];
+        localNotes = data.notes || [];
+        refreshAllViews();
+      }
+      showLoading(false);
+    })
+    .catch(err => {
+      console.error("Lỗi kết nối long mạch: ", err);
+      showLoading(false);
+      refreshAllViews();
+    });
 }
 
 function refreshAllViews() {
@@ -980,7 +992,7 @@ function openEditModal(type, id) {
     document.getElementById('editTime').value = taskObj.time || "00:00";
     document.getElementById('editTag').value = taskObj.tag || "🔱 Quan trọng";
   } else if (type === 'note') {
-    document.getElementById('editModalTitle').innerText = "CHỈNH SỬA Ý TƯỞNG LỊCH NĂM";
+    document.getElementById('editModalTitle').innerText = "CHỈNH SỬA Ý TƯỞOWNG LỊCH NĂM";
     const noteObj = localNotes.find(n => n.id === id);
     if (!noteObj) return;
     document.getElementById('editContent').value = noteObj.content;
