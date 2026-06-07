@@ -812,8 +812,10 @@ function switchView(viewName, element) {
 }
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-let localTasks = [];
-let localNotes = [];
+// --- KHỞI TẠO DỮ LIỆU TỪ BỘ NHỚ TRÌNH DUYỆT (LƯU TRỮ VĨNH VIỄN TRÊN WEB) ---
+let localTasks = JSON.parse(localStorage.getItem("hyhy_local_tasks")) || [];
+let localNotes = JSON.parse(localStorage.getItem("hyhy_local_notes")) || [];
+
 let currentYear = 2026;
 let selectedMonth = null;
 let selectedDateStr = "";
@@ -822,8 +824,6 @@ let bsDetailModal = null;
 let filteredDashboardTasks = [];
 let filteredDashboardNotes = [];
 let currentSelectedDate = new Date();
-let isPollingActive = false;
-let isUserTyping = false; 
 let API_URL = ""; 
 
 const monthPastelColors = [
@@ -834,6 +834,12 @@ const monthPastelColors = [
   { background: "#F1F5F9", text: "#334155" }, { background: "#FEF2F2", text: "#991B1B" },
   { background: "#ECFDF5", text: "#065F46" }, { background: "#FFFBEB", text: "#92400E" }
 ];
+
+// Hàm cập nhật lưu kho vĩnh viễn vào localStorage của Web
+function saveToWebStorage() {
+  localStorage.setItem("hyhy_local_tasks", JSON.stringify(localTasks));
+  localStorage.setItem("hyhy_local_notes", JSON.stringify(localNotes));
+}
 
 function getLunarDate2026(day, month, year) {
   if(year !== 2026) return "Mùng --";
@@ -858,55 +864,57 @@ function startLiveClock() {
 }
 
 /**
- * ĐỘNG CƠ GIAO TIẾP JSONP: Giải quyết dứt điểm 100% lỗi CORS truyền dữ liệu từ GitHub lên Sheet
+ * ĐỘNG CƠ CƠ CHẾ JSONP HOÀN TOÀN ĐỘC LẬP
  */
-function requestJSONP(params) {
+function requestJSONP(params, successCallback) {
   if (!API_URL) return;
   
-  // Tạo một tên hàm ngẫu nhiên để hứng dữ liệu trả về
   const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
   
-  // Tạo hàm tạm thời nằm trên cửa sổ window toàn cục
   window[callbackName] = function(response) {
     if (response && response.status === "success") {
-      localTasks = response.data.tasks || [];
-      localNotes = response.data.notes || [];
-      refreshAllViews();
+      if (successCallback) successCallback(response.data);
     } else if (response && response.status === "error") {
-      console.error("Lỗi từ hệ thống Long Mạch:", response.message);
+      alert("Lỗi Long Mạch: " + response.message);
     }
-    // Dọn dẹp thẻ script sau khi hoàn tất xử lý dữ liệu
     document.body.removeChild(script);
     delete window[callbackName];
-    isPollingActive = false;
     showLoading(false);
   };
 
-  // Nối chuỗi tham số truy vấn
   let queryString = `?callback=${callbackName}`;
   for (let key in params) {
     queryString += `&${key}=${encodeURIComponent(params[key])}`;
   }
 
-  // Khởi tạo thẻ script động đâm thẳng lên Apps Script
   const script = document.createElement('script');
   script.src = API_URL + queryString;
   document.body.appendChild(script);
 }
 
+// CHỨC NĂNG 1: ĐỌC TỪ SHEET VỀ WEB (CHỈ CHẠY KHI ẤN NÚT)
 function manualPullData() {
+  if (!API_URL) { alert("Chưa cấu hình URL kết nối!"); return; }
   showLoading(true);
-  isPollingActive = true;
-  requestJSONP({ action: "readAll" });
+  requestJSONP({ action: "readAll" }, function(serverData) {
+    localTasks = serverData.tasks || [];
+    localNotes = serverData.notes || [];
+    saveToWebStorage(); // Ghi đè vào bộ nhớ máy vĩnh viễn
+    refreshAllViews();
+    alert("📥 Đã đồng bộ kéo toàn bộ dữ liệu mới nhất từ Google Sheets về Web thành công!");
+  });
 }
 
+// CHỨC NĂNG 2: ĐẨY TỪ WEB LÊN SHEET (CHỈ CHẠY KHI ẤN NÚT)
 function manualPushData() {
+  if (!API_URL) { alert("Chưa cấu hình URL kết nối!"); return; }
   showLoading(true);
-  isPollingActive = true;
   requestJSONP({ 
     action: "syncAll", 
     tasks: JSON.stringify(localTasks), 
     notes: JSON.stringify(localNotes) 
+  }, function(serverData) {
+    alert("📤 Đã đẩy toàn bộ dữ liệu hiện tại trên Web lên lưu trữ tại Google Sheets thành công!");
   });
 }
 
@@ -922,33 +930,15 @@ document.addEventListener("DOMContentLoaded", function() {
   let nextMonth = new Date(); nextMonth.setMonth(nextMonth.getMonth() + 1);
   document.getElementById('dashRangeEnd').value = getFormatDateString(nextMonth);
 
-  const monitorInputs = ['taskContent', 'noteInput'];
-  monitorInputs.forEach(id => {
-    const el = document.getElementById(id);
-    if(el) {
-      el.addEventListener('focus', () => { isUserTyping = true; });
-      el.addEventListener('blur', () => { isUserTyping = false; });
-    }
-  });
-
+  // Hiển thị ngay lập tức dữ liệu đang có sẵn trong máy (Không đợi chờ Sheet)
   resetToToday();
   renderMonthsList();
   startLiveClock();
+  refreshAllViews();
 
-  if(API_URL) {
-    showLoading(true);
-    requestJSONP({ action: "readAll" });
-    
-    // Tự động kéo dữ liệu đồng bộ mượt mà từ Sheet về sau mỗi 15 giây
-    setInterval(function() { 
-      if (!isPollingActive && !isUserTyping) { 
-        isPollingActive = true;
-        requestJSONP({ action: "readAll" });
-      } 
-    }, 15000);
-  } else {
+  if(!API_URL) {
     switchView('settings', document.getElementById('menu-link-settings'));
-    alert("👑 Chào mừng đến với HY HY TASK! Vui lòng thiết lập cấu hình đường dẫn API Apps Script để bắt đầu vận hành.");
+    alert("👑 Chào mừng đến với HY HY TASK! Vui lòng dán liên kết API Web App Apps Script để kích hoạt hệ thống.");
   }
 });
 
@@ -957,9 +947,8 @@ function saveSystemSettings() {
   if(!urlVal) { alert("Vui lòng điền URL Web App hợp lệ!"); return; }
   localStorage.setItem("hyhy_api_url", urlVal);
   API_URL = urlVal;
-  alert("🎉 Cấu hình kết nối thành công! Đang tiến hành đồng bộ...");
-  showLoading(true);
-  requestJSONP({ action: "readAll" });
+  alert("🎉 Kết nối thành công! Đang tiến hành nạp dữ liệu bản đầu...");
+  manualPullData();
   switchView('task', document.getElementById('menu-link-task'));
 }
 
@@ -1049,7 +1038,7 @@ function renderTasks(tasks) {
       <input type="checkbox" class="form-check-input me-3 flex-shrink-0" ${isDone ? 'checked' : ''} onchange="toggleStatus('${task.id}')">
       <div class="task-clickable ${isDone ? 'task-done' : ''}" onclick="openEditModal('task', '${task.id}')">
         <div style="font-size: 14px; word-break: break-all; padding-right:8px;">
-          <span class="stt-badge">${task.stt}</span><strong>${task.content}</strong>
+          <span class="stt-badge">${task.stt}</span><b>${task.content}</b>
           <div class="text-muted" style="font-size: 11px; margin-top: 4px;">
             <span class="badge text-dark" style="background-color:#E3C16F;">${task.tag}</span> | 📅 ${task.date}${task.time ? ' | ⏰ Giờ: ' + task.time : ''}
           </div>
@@ -1073,28 +1062,28 @@ function addNewTask() {
     tag: document.getElementById('taskTag').value, status: "Chưa xong", id: "ID_" + new Date().getTime()
   });
   
+  saveToWebStorage(); // Khắc ghi vĩnh viễn vào Web
   refreshAllViews();
   document.getElementById('taskContent').value = ''; document.getElementById('taskTime').value = '';
-  
-  // Đẩy ghi đè lập tức qua JSONP lên Google Sheets
-  requestJSONP({ action: "updateTasks", list: JSON.stringify(localTasks) });
 }
 
 function deleteTask(id) {
   const deletedTask = localTasks.find(t => t.id === id); if (!deletedTask) return;
-  localTasks = localTasks.filter(t => t.id !== id); refreshAllViews();
+  localTasks = localTasks.filter(t => t.id !== id); 
+  saveToWebStorage();
+  refreshAllViews();
 
   showUndoToast(`Đã xóa: "${deletedTask.content}"`, function() {
-    localTasks.push(deletedTask); refreshAllViews();
-    requestJSONP({ action: "updateTasks", list: JSON.stringify(localTasks) });
+    localTasks.push(deletedTask); 
+    saveToWebStorage();
+    refreshAllViews();
   });
-  requestJSONP({ action: "updateTasks", list: JSON.stringify(localTasks) });
 }
 
 function toggleStatus(id) {
   localTasks = localTasks.map(t => { if (t.id === id) t.status = (t.status === "Đã xong") ? "Chưa xong" : "Đã xong"; return t; });
+  saveToWebStorage();
   refreshAllViews();
-  requestJSONP({ action: "updateTasks", list: JSON.stringify(localTasks) });
 }
 
 function renderMonthsList() {
@@ -1186,19 +1175,21 @@ function addNote() {
     date: selectedDateStr, content: content, time: document.getElementById('noteTimeInput').value || "00:00",
     tag: document.getElementById('noteTagInput').value, id: "NOTE_" + new Date().getTime()
   });
+  saveToWebStorage(); // Khắc ghi vĩnh viễn vào Web
   refreshAllViews();
   document.getElementById('noteInput').value = ''; document.getElementById('noteTimeInput').value = '00:00';
-  requestJSONP({ action: "updateNotes", list: JSON.stringify(localNotes) });
 }
 
 function deleteNote(id) {
   const deletedNote = localNotes.find(n => n.id === id); if (!deletedNote) return;
-  localNotes = localNotes.filter(n => n.id !== id); refreshAllViews();
+  localNotes = localNotes.filter(n => n.id !== id); 
+  saveToWebStorage();
+  refreshAllViews();
   showUndoToast(`Đã xóa ý tưởng: "${deletedNote.content}"`, function() {
-    localNotes.push(deletedNote); refreshAllViews();
-    requestJSONP({ action: "updateNotes", list: JSON.stringify(localNotes) });
+    localNotes.push(deletedNote); 
+    saveToWebStorage();
+    refreshAllViews();
   });
-  requestJSONP({ action: "updateNotes", list: JSON.stringify(localNotes) });
 }
 
 function openEditModal(type, id) {
@@ -1220,14 +1211,14 @@ function saveEditData() {
   const date = document.getElementById('editDate').value;
   if (!content || !date) { alert("Vui lòng điền đầy đủ dữ liệu cập nhật!"); return; }
 
-  bsEditModal.hide(); showLoading(true);
   if (type === 'task') {
     localTasks = localTasks.map(t => { if (t.id === id) { t.content = content; t.date = date; t.time = document.getElementById('editTime').value; t.tag = document.getElementById('editTag').value; } return t; });
-    requestJSONP({ action: "updateTasks", list: JSON.stringify(localTasks) });
   } else {
     localNotes = localNotes.map(n => { if (n.id === id) { n.content = content; n.date = date; n.time = document.getElementById('editTime').value; n.tag = document.getElementById('editTag').value; } return n; });
-    requestJSONP({ action: "updateNotes", list: JSON.stringify(localNotes) });
   }
+  saveToWebStorage();
+  refreshAllViews();
+  bsEditModal.hide();
 }
 
 function showUndoToast(message, undoCallback) {
