@@ -16,66 +16,14 @@
   --card-shadow-hover: 0 16px 24px -4px rgba(227, 193, 111, 0.2), 0 8px 8px -4px rgba(227, 193, 111, 0.1);
 }
 
-body { 
-  background: var(--bg-gradient); 
-  font-family: 'Plus Jakarta Sans', sans-serif; 
-  color: #4A3E2D; 
-  min-height: 100vh;
-}
+body { background: var(--bg-gradient); font-family: 'Plus Jakarta Sans', sans-serif; color: #4A3E2D; min-height: 100vh; }
+.header-box { background: linear-gradient(135deg, #E3C16F, #F2E3C6, #EBD399); color: #4A3E2D; text-align: center; padding: 20px; border-radius: 20px; margin: 15px; position: relative; box-shadow: 0 8px 20px rgba(227, 193, 111, 0.2); border: 1px solid #FFF; }
+.header-box h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
+.btn-menu { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #4A3E2D; font-size: 20px; cursor: pointer; }
 
-.header-box {
-  background: linear-gradient(135deg, #E3C16F, #F2E3C6, #EBD399); 
-  color: #4A3E2D; 
-  text-align: center;
-  padding: 20px; 
-  border-radius: 20px; 
-  margin: 15px; 
-  position: relative; 
-  box-shadow: 0 8px 20px rgba(227, 193, 111, 0.2);
-  border: 1px solid #FFF;
-}
-.header-box h1 { 
-  margin: 0; 
-  font-size: 24px; 
-  font-weight: 800; 
-  letter-spacing: 2px; 
-  text-transform: uppercase;
-}
-.btn-menu { 
-  position: absolute; 
-  left: 20px; 
-  top: 50%; 
-  transform: translateY(-50%); 
-  color: #4A3E2D; 
-  font-size: 20px; 
-  cursor: pointer; 
-  transition: 0.3s; 
-}
-
-.day-nav-bar {
-  display: flex; 
-  align-items: center; 
-  justify-content: space-between;
-  background: rgba(255, 255, 255, 0.85); 
-  backdrop-filter: blur(10px);
-  margin: 0 15px 20px 15px; 
-  padding: 12px 18px;
-  border-radius: 18px; 
-  box-shadow: var(--card-shadow);
-  border: 1px solid rgba(227, 193, 111, 0.3);
-}
-.btn-nav-day {
-  background: white; 
-  border: 1px solid #EAE1CC; 
-  padding: 8px 14px; 
-  font-size: 13px;
-  font-weight: 700; 
-  border-radius: 12px; 
-  color: #6E614F; 
-  transition: all 0.2s ease;
-}
-.btn-nav-day:hover { background: var(--primary-color); color: #4A3E2D; border-color: var(--primary-color); }
-.calendar-center-box { text-align: center; flex-grow: 1; margin: 0 10px; cursor: pointer; padding: 4px; border-radius: 12px; }
+.day-nav-bar { display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); margin: 0 15px 20px 15px; padding: 12px 18px; border-radius: 18px; box-shadow: var(--card-shadow); border: 1px solid rgba(227, 193, 111, 0.3); }
+.btn-nav-day { background: white; border: 1px solid #EAE1CC; padding: 8px 14px; font-size: 13px; font-weight: 700; border-radius: 12px; color: #6E614F; }
+.calendar-center-box { text-align: center; flex-grow: 1; margin: 0 10px; cursor: pointer; }
 .solar-txt { font-size: 18px; font-weight: 800; color: #4A3E2D; margin: 0; }
 .lunar-txt { font-size: 12px; color: #C85C42; font-weight: 700; margin: 2px 0 0 0; }
 .clock-txt { font-size: 12px; color: #407BCA; font-weight: 700; margin: 2px 0 0 0; }
@@ -84,17 +32,12 @@ body {
 .sidebar-link:hover, .sidebar-link.active { background-color: #FAF8F2; color: #AA823B; border-left: 5px solid var(--primary-color); font-weight: 700; }
 .sidebar-link i { margin-right: 12px; width: 22px; text-align: center; font-size: 18px; }
 
-.view-content { display: none; padding: 15px; animation: fadeIn 0.3s ease-out; }
+.view-content { display: none; padding: 15px; }
 .view-content.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
 .card { border: none; border-radius: 18px; box-shadow: var(--card-shadow); background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(227, 193, 111, 0.15); }
 .form-control, .form-select { border-radius: 12px; border: 1px solid #D9CFC1; padding: 8px 12px; font-size: 14px; }
 
-.accordion-luxury-btn {
-  background: linear-gradient(135deg, #FAF8F2, #F4EFE3);
-  color: #4A3E2D; font-weight: 700; border-radius: 14px !important; border: 1px solid #E3C16F !important; padding: 12px 18px;
-}
+.accordion-luxury-btn { background: linear-gradient(135deg, #FAF8F2, #F4EFE3); color: #4A3E2D; font-weight: 700; border-radius: 14px !important; border: 1px solid #E3C16F !important; padding: 12px 18px; }
 .accordion-luxury-btn:not(.collapsed) { background: linear-gradient(135deg, #E3C16F, #F2E3C6); }
 .accordion-luxury-item { border: none !important; background: transparent !important; margin-bottom: 12px; }
 .accordion-luxury-body { padding: 10px 2px 2px 2px; }
@@ -116,13 +59,12 @@ body {
 .stt-badge { background: #5C5042; color: #FAF8F2; font-size: 11px; padding: 3px 8px; border-radius: 8px; margin-right: 10px; font-weight: 700; }
 .form-check-input { width: 20px; height: 20px; cursor: pointer; }
 
-.dashboard-card { background: white; border-radius: 18px; padding: 20px 12px; box-shadow: var(--card-shadow); text-align: center; cursor: pointer; }
+.dashboard-card { background: white; border-radius: 18px; padding: 20px 12px; box-shadow: var(--card-shadow); text-align: center; }
 .dashboard-card h3 { margin: 8px 0 2px 0; font-size: 30px; font-weight: 800; }
 .dashboard-card p { color: #8A7E70; margin: 0; font-size: 12px; font-weight: 700; text-transform: uppercase; }
 
 .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
 .pop-list-item { background: #FAF8F2; border-left: 5px solid #E3C16F; padding: 12px; border-radius: 0 14px 14px 0; margin-bottom: 10px; font-size: 14px; cursor: pointer; }
-
 .undo-toast-container { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; }
 .undo-toast { background: #4A3E2D; color: #FAF8F2; padding: 12px 16px; border-radius: 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: space-between; }
 .btn-undo-action { background: #E3C16F; border: none; color: #4A3E2D; font-weight: 800; padding: 4px 12px; border-radius: 8px; font-size: 12px; }
@@ -173,7 +115,7 @@ body {
     <input type="text" id="cfgScriptUrl" class="form-control form-control-sm" placeholder="https://script.google.com/macros/s/.../exec">
   </div>
   <div class="mb-3">
-    <label class="small fw-bold text-muted">Spreadsheet ID (Trang tính nào cũng được):</label>
+    <label class="small fw-bold text-muted">Spreadsheet ID:</label>
     <input type="text" id="cfgSheetId" class="form-control form-control-sm" placeholder="Nhập ID chuỗi ký tự của Sheets">
   </div>
   <button class="btn btn-sm w-100 fw-bold" style="background:#E3C16F; color:#4A3E2D;" onclick="saveConnectionConfig()"><i class="fa-solid fa-cloud-arrow-down"></i> KẾT NỐI VÀ ĐỒNG BỘ</button>
@@ -224,8 +166,13 @@ body {
       <div id="collapseTaskList" class="accordion-collapse collapse show" data-bs-parent="#taskMainAccordion">
         <div class="accordion-body accordion-luxury-body">
           <h6 class="fw-bold px-1 mb-3 text-secondary d-flex justify-content-between align-items-center">
-          <span style="font-size: 13px; letter-spacing: 0.5px; font-weight:700;">DANH SÁCH CHI TIẾT</span>
-          <span class="badge text-dark px-2.5 py-1.5" id="taskFilterLabel" style="font-size: 12px; border-radius:8px; background-color: #E3C16F;">Hôm nay</span>
+            <div>
+              <span style="font-size: 13px; letter-spacing: 0.5px; font-weight:700;">DANH SÁCH CHI TIẾT</span>
+              <span class="badge text-dark ms-1" id="taskFilterLabel" style="font-size: 12px; background-color: #E3C16F;">Hôm nay</span>
+            </div>
+            <button class="btn btn-xs fw-bold px-2 py-1 border text-dark" id="btnToggleHideDone" style="font-size:11px; border-radius:8px; background:#FFF;" onclick="toggleHideDoneTasks()">
+              🙈 Ẩn việc đã xong
+            </button>
           </h6>
           <div id="taskList"></div>
         </div>
@@ -344,9 +291,11 @@ body {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// KHỞI TẠO DỮ LIỆU TỪ LOCAL STORAGE (Đảm bảo dữ liệu nằm cố định, không tự biến mất)
 let localTasks = JSON.parse(localStorage.getItem('HY_HY_TASKS')) || [];
 let localNotes = JSON.parse(localStorage.getItem('HY_HY_NOTES')) || [];
+// BIẾN ĐIỀU KHIỂN TRẠNG THÁI ẨN NHIỆM VỤ ĐÃ TICK HOÀN THÀNH
+let hideDoneTasksState = localStorage.getItem('HY_HY_HIDE_DONE') === 'true';
+
 let currentYear = 2026;
 let selectedMonth = null;
 let selectedDateStr = "";
@@ -365,10 +314,29 @@ const monthPastelColors = [
   { background: "#ECFDF5", text: "#065F46" }, { background: "#FFFBEB", text: "#92400E" }
 ];
 
-// Hàm lưu dữ liệu vào bộ nhớ Web Local
 function saveToLocalWeb() {
   localStorage.setItem('HY_HY_TASKS', JSON.stringify(localTasks));
   localStorage.setItem('HY_HY_NOTES', JSON.stringify(localNotes));
+}
+
+function toggleHideDoneTasks() {
+  hideDoneTasksState = !hideDoneTasksState;
+  localStorage.setItem('HY_HY_HIDE_DONE', hideDoneTasksState);
+  updateHideDoneButtonUI();
+  renderTasks(localTasks);
+}
+
+function updateHideDoneButtonUI() {
+  const btn = document.getElementById('btnToggleHideDone');
+  if(hideDoneTasksState) {
+    btn.innerHTML = "🙈 Ẩn việc đã xong";
+    btn.classList.add('btn-dark');
+    btn.classList.remove('btn-outline-dark');
+  } else {
+    btn.innerHTML = "👁️ Hiện tất cả việc";
+    btn.classList.remove('btn-dark');
+    btn.classList.add('btn-outline-dark');
+  }
 }
 
 function getLunarDate2026(day, month, year) {
@@ -379,7 +347,6 @@ function getLunarDate2026(day, month, year) {
   const lunarMonths2026 = [30, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30, 29];
   if(diffDays < 0) return "Cuối năm cũ";
   let daysLeft = diffDays;
-  let lunarMonth = 1;
   for(let i=0; i<lunarMonths2026.length; i++) {
     if(daysLeft < lunarMonths2026[i]) { return `${String(daysLeft + 1).padStart(2,'0')}/${String(i + 1).padStart(2,'0')}`; }
     daysLeft -= lunarMonths2026[i];
@@ -398,7 +365,6 @@ document.addEventListener("DOMContentLoaded", function() {
   bsEditModal = new bootstrap.Modal(document.getElementById('editModal'));
   bsDetailModal = new bootstrap.Modal(document.getElementById('detailDashboardModal'));
   
-  // Nạp cấu hình kết nối cũ nếu có
   document.getElementById('cfgScriptUrl').value = localStorage.getItem('HY_HY_SCRIPT_URL') || "";
   document.getElementById('cfgSheetId').value = localStorage.getItem('HY_HY_SHEET_ID') || "";
   
@@ -411,14 +377,10 @@ document.addEventListener("DOMContentLoaded", function() {
   renderMonthsList();
   startLiveClock();
   updateConnectionUI();
+  updateHideDoneButtonUI();
   
-  // Tải ngầm dữ liệu từ Sheet nếu đã có cấu hình hoàng gia
   pullDataFromSheet(false);
-  
-  // Vòng lặp đồng bộ 2 chiều tự động (15 giây một lần)
-  setInterval(function() {
-    pullDataFromSheet(false);
-  }, 15000);
+  setInterval(function() { pullDataFromSheet(false); }, 15000);
 });
 
 function saveConnectionConfig() {
@@ -443,12 +405,10 @@ function updateConnectionUI() {
   }
 }
 
-// HÀM LIÊN KẾT ĐỒNG BỘ ĐỌC DỮ LIỆU TỪ GOOGLE SHEET VỀ WEB
 function pullDataFromSheet(showSpinner) {
   const url = localStorage.getItem('HY_HY_SCRIPT_URL');
   const id = localStorage.getItem('HY_HY_SHEET_ID');
   if(!url || !id) return;
-
   if (showSpinner) showLoading(true);
   
   fetch(url, {
@@ -459,17 +419,14 @@ function pullDataFromSheet(showSpinner) {
   .then(res => res.json())
   .then(resData => {
     if(resData.success && resData.data) {
-      // Nguyên tắc hợp nhất 2 chiều: Kết hợp dữ liệu cũ trên Web với Sheet, lọc trùng ID, không tự động xóa bừa bãi
       const remoteTasks = resData.data.tasks || [];
       const remoteNotes = resData.data.notes || [];
       
-      // Hợp nhất Tasks
       let taskMap = new Map();
       localTasks.forEach(t => taskMap.set(t.id, t));
-      remoteTasks.forEach(t => taskMap.set(t.id, t)); // Dữ liệu mới nhất từ Sheet hoặc Web được đè lên nhau chuẩn xác
+      remoteTasks.forEach(t => taskMap.set(t.id, t));
       localTasks = Array.from(taskMap.values());
       
-      // Hợp nhất Notes
       let noteMap = new Map();
       localNotes.forEach(n => noteMap.set(n.id, n));
       remoteNotes.forEach(n => noteMap.set(n.id, n));
@@ -481,41 +438,23 @@ function pullDataFromSheet(showSpinner) {
     if (showSpinner) showLoading(false);
   })
   .catch(err => {
-    console.error("Lỗi đồng bộ long mạch: ", err);
+    console.error(err);
     if (showSpinner) showLoading(false);
   });
 }
 
-// HÀM ĐẨY DỮ LIỆU TASK LÊN GOOGLE SHEET
 function pushTasksToSheet() {
   const url = localStorage.getItem('HY_HY_SCRIPT_URL');
   const id = localStorage.getItem('HY_HY_SHEET_ID');
   if(!url || !id) return;
-
-  fetch(url, {
-    method: "POST",
-    mode: "cors",
-    body: JSON.stringify({ action: "updateTasks", spreadsheetId: id, tasks: localTasks })
-  })
-  .then(res => res.json())
-  .then(resData => { if(!resData.success) console.error("Lỗi cập nhật Sheet: " + resData.message); })
-  .catch(e => console.error(e));
+  fetch(url, { method: "POST", mode: "cors", body: JSON.stringify({ action: "updateTasks", spreadsheetId: id, tasks: localTasks }) });
 }
 
-// HÀM ĐẨY DỮ LIỆU DỰ ĐỊNH LÊN GOOGLE SHEET
 function pushNotesToSheet() {
   const url = localStorage.getItem('HY_HY_SCRIPT_URL');
   const id = localStorage.getItem('HY_HY_SHEET_ID');
   if(!url || !id) return;
-
-  fetch(url, {
-    method: "POST",
-    mode: "cors",
-    body: JSON.stringify({ action: "updateNotes", spreadsheetId: id, notes: localNotes })
-  })
-  .then(res => res.json())
-  .then(resData => { if(!resData.success) console.error("Lỗi cập nhật Ý tưởng: " + resData.message); })
-  .catch(e => console.error(e));
+  fetch(url, { method: "POST", mode: "cors", body: JSON.stringify({ action: "updateNotes", spreadsheetId: id, notes: localNotes }) });
 }
 
 function getFormatDateString(dateObj) {
@@ -526,10 +465,8 @@ function updateQuickCalendarDisplay(dateObj) {
   const d = dateObj.getDate(); const m = dateObj.getMonth() + 1; const y = dateObj.getFullYear();
   document.getElementById('solarDateDisplay').innerText = `${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}/${y}`;
   document.getElementById('lunarDateDisplay').innerText = `Âm lịch: ${getLunarDate2026(d, m, y)}`;
-  
   const todayStr = getFormatDateString(new Date());
-  const targetStr = getFormatDateString(dateObj);
-  document.getElementById('taskFilterLabel').innerText = (targetStr === todayStr) ? "Hôm nay" : `${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}`;
+  document.getElementById('taskFilterLabel').innerText = (getFormatDateString(dateObj) === todayStr) ? "Hôm nay" : `${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}`;
 }
 
 function adjustSelectedDate(daysOffset) {
@@ -551,58 +488,27 @@ function refreshAllViews() {
   if(selectedDateStr) renderDayNotes();
 }
 
-function showLoading(status) {
-  document.getElementById('loading').style.display = status ? 'flex' : 'none';
-}
-
+function showLoading(status) { document.getElementById('loading').style.display = status ? 'flex' : 'none'; }
 function toggleFilterInputs() {
-  const mode = document.getElementById('dashTimeFilter').value;
-  document.getElementById('rangePickerBox').style.display = (mode === 'range') ? 'block' : 'none';
+  document.getElementById('rangePickerBox').style.display = (document.getElementById('dashTimeFilter').value === 'range') ? 'block' : 'none';
   renderDashboard();
 }
 
-function renderDashboard() {
-  const filterMode = document.getElementById('dashTimeFilter').value;
-  if (filterMode === 'range') {
-    const startStr = document.getElementById('dashRangeStart').value;
-    const endStr = document.getElementById('dashRangeEnd').value;
-    if (startStr && endStr) {
-      filteredDashboardTasks = localTasks.filter(t => t.date >= startStr && t.date <= endStr);
-      filteredDashboardNotes = localNotes.filter(n => n.date >= startStr && n.date <= endStr);
-    }
-  } else {
-    filteredDashboardTasks = localTasks;
-    filteredDashboardNotes = localNotes;
-  }
-
-  const totalTasks = filteredDashboardTasks.length;
-  const doneTasks = filteredDashboardTasks.filter(t => t.status === "Đã xong").length;
-  const pendingTasks = totalTasks - doneTasks;
-  const totalNotes = filteredDashboardNotes.length;
-
-  document.getElementById('dashTotalTasks').innerText = totalTasks;
-  document.getElementById('dashDoneTasks').innerText = doneTasks;
-  document.getElementById('dashPendingTasks').innerText = pendingTasks;
-  document.getElementById('dashTotalNotes').innerText = totalNotes;
-
-  let percent = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
-  const progressBar = document.getElementById('dashProgressBar');
-  progressBar.style.width = percent + '%'; progressBar.innerText = percent + '%';
-  
-  const textMsg = document.getElementById('dashProgressText');
-  if(percent === 100 && totalTasks > 0) textMsg.innerText = "🎉 Toàn diện viên mãn! Mọi công việc đã hoàn thành!";
-  else if (percent >= 50) textMsg.innerText = "🔱 Tiến độ rất tốt, duy trì phong độ hoàng gia nhé!";
-  else textMsg.innerText = "✨ Hãy bắt đầu hành động để đạt mục tiêu.";
-}
-
+// HÀM RENDER ĐÃ TÍCH HỢP BỘ LỌC ẨN TASK HOÀN THÀNH
 function renderTasks(tasks) {
   const listContainer = document.getElementById('taskList');
   listContainer.innerHTML = '';
   const targetDateStr = getFormatDateString(currentSelectedDate);
+  
   let filtered = tasks.filter(t => t.date === targetDateStr);
 
+  // Thực hiện ẩn nếu trạng thái hideDoneTasksState là True
+  if(hideDoneTasksState) {
+    filtered = filtered.filter(t => t.status !== "Đã xong");
+  }
+
   if (!filtered || filtered.length === 0) {
-    listContainer.innerHTML = '<div class="text-center text-muted my-4 small fw-medium">Hôm nay thảnh thơi an nhàn, tâm trí minh mẫn!</div>';
+    listContainer.innerHTML = '<div class="text-center text-muted my-4 small fw-medium">Danh sách trống hoặc các việc đã hoàn thành đã được ẩn!</div>';
     return;
   }
 
@@ -636,20 +542,12 @@ function addNewTask() {
   if (!rawTime) { rawTime = `${getFormatDateString(currentSelectedDate)}T00:00`; }
 
   const dateParts = rawTime.split("T");
-  const newTask = {
-    date: dateParts[0],
-    stt: localTasks.filter(t => t.date === dateParts[0]).length + 1,
-    content: content,
-    time: dateParts[1] ? dateParts[1].substring(0, 5) : "00:00",
-    tag: tag,
-    status: "Chưa xong",
-    id: "ID_" + new Date().getTime()
-  };
-
-  localTasks.push(newTask);
-  saveToLocalWeb();
-  refreshAllViews();
-
+  localTasks.push({
+    date: dateParts[0], stt: localTasks.filter(t => t.date === dateParts[0]).length + 1,
+    content: content, time: dateParts[1] ? dateParts[1].substring(0, 5) : "00:00",
+    tag: tag, status: "Chưa xong", id: "ID_" + new Date().getTime()
+  });
+  saveToLocalWeb(); refreshAllViews();
   document.getElementById('taskContent').value = '';
   document.getElementById('taskTime').value = '';
   pushTasksToSheet();
@@ -658,220 +556,143 @@ function addNewTask() {
 function deleteTask(id) {
   const deletedTask = localTasks.find(t => t.id === id);
   if (!deletedTask) return;
-
   localTasks = localTasks.filter(t => t.id !== id);
-  saveToLocalWeb();
-  refreshAllViews();
-
+  saveToLocalWeb(); refreshAllViews();
   showUndoToast(`Đã xóa: "${deletedTask.content}"`, function() {
-    localTasks.push(deletedTask);
-    saveToLocalWeb();
-    refreshAllViews();
-    pushTasksToSheet();
+    localTasks.push(deletedTask); saveToLocalWeb(); refreshAllViews(); pushTasksToSheet();
   });
   pushTasksToSheet();
 }
 
 function toggleStatus(id) {
-  localTasks = localTasks.map(t => {
-    if (t.id === id) t.status = (t.status === "Đã xong") ? "Chưa xong" : "Đã xong";
-    return t;
-  });
-  saveToLocalWeb();
-  refreshAllViews();
-  pushTasksToSheet();
+  localTasks = localTasks.map(t => (t.id === id ? { ...t, status: t.status === "Đã xong" ? "Chưa xong" : "Đã xong" } : t));
+  saveToLocalWeb(); refreshAllViews(); pushTasksToSheet();
 }
 
 function renderMonthsList() {
   const monthGrid = document.getElementById('monthGrid');
-  monthGrid.innerHTML = '';
   for (let m = 0; m < 12; m++) {
-    const div = document.createElement('div');
-    div.className = 'month-card'; div.innerText = `Tháng ${m + 1}`;
+    const div = document.createElement('div'); div.className = 'month-card'; div.innerText = `Tháng ${m + 1}`;
     div.style.backgroundColor = monthPastelColors[m].background; div.style.color = monthPastelColors[m].text;
-    div.onclick = function() {
-      document.querySelectorAll('.month-card').forEach(c => c.classList.remove('active'));
-      div.classList.add('active'); selectMonth(m);
-    };
+    div.onclick = function() { document.querySelectorAll('.month-card').forEach(c => c.classList.remove('active')); div.classList.add('active'); selectMonth(m); };
     monthGrid.appendChild(div);
   }
 }
 
 function selectMonth(monthIndex) {
-  selectedMonth = monthIndex;
-  document.getElementById('daysContainer').style.display = 'block';
+  selectedMonth = monthIndex; document.getElementById('daysContainer').style.display = 'block';
   document.getElementById('selectedMonthTitle').innerHTML = `<i class="fa-solid fa-calendar-days me-2"></i> CHI TIẾT LỊCH TRÌNH THÁNG ${monthIndex + 1}`;
-  document.getElementById('noteContainer').style.display = 'none';
-  selectedDateStr = "";
-  renderDaysGrid(monthIndex);
+  document.getElementById('noteContainer').style.display = 'none'; selectedDateStr = ""; renderDaysGrid(monthIndex);
 }
 
 function renderDaysGrid(monthIndex) {
   const daysGrid = document.getElementById('daysGrid'); daysGrid.innerHTML = '';
   const weekdayLabels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-  weekdayLabels.forEach(lbl => {
-    const div = document.createElement('div'); div.className = 'day-header'; div.innerText = lbl; daysGrid.appendChild(div);
-  });
+  weekdayLabels.forEach(lbl => { const div = document.createElement('div'); div.className = 'day-header'; div.innerText = lbl; daysGrid.appendChild(div); });
 
   const firstDay = new Date(currentYear, monthIndex, 1);
   let startDayOfWeek = firstDay.getDay(); startDayOfWeek = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
   const totalDays = new Date(currentYear, monthIndex + 1, 0).getDate();
 
-  for (let i = 0; i < startDayOfWeek; i++) {
-    const emptyCell = document.createElement('div'); emptyCell.className = 'day-cell empty'; daysGrid.appendChild(emptyCell);
-  }
+  for (let i = 0; i < startDayOfWeek; i++) { daysGrid.appendChild(Object.assign(document.createElement('div'), {className:'day-cell empty'})); }
 
   for (let d = 1; d <= totalDays; d++) {
     const cell = document.createElement('div'); cell.className = 'day-cell'; cell.innerText = d;
     cell.style.backgroundColor = monthPastelColors[monthIndex].background; cell.style.color = monthPastelColors[monthIndex].text;
-
     const dateStr = `${currentYear}-${String(monthIndex + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     if (localNotes.some(n => n.date === dateStr)) cell.classList.add('has-note');
     if (selectedDateStr === dateStr) cell.classList.add('active');
-
-    cell.onclick = function() {
-      document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active'));
-      cell.classList.add('active'); selectDay(dateStr);
-    };
+    cell.onclick = function() { document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active')); cell.classList.add('active'); selectDay(dateStr); };
     daysGrid.appendChild(cell);
   }
 }
 
 function selectDay(dateStr) {
-  selectedDateStr = dateStr;
-  document.getElementById('noteContainer').style.display = 'block';
-  const parts = dateStr.split("-");
-  document.getElementById('selectedDayTitle').innerHTML = `<i class="fa-solid fa-thumbtack me-2"></i> Dự định tương lai: <span class="text-danger fw-bold">${parts[2]}/${parts[1]}/${parts[0]}</span>`;
+  selectedDateStr = dateStr; document.getElementById('noteContainer').style.display = 'block';
+  document.getElementById('selectedDayTitle').innerHTML = `<i class="fa-solid fa-thumbtack me-2"></i> Dự định: <span class="text-danger fw-bold">${dateStr.split("-")[2]}/${dateStr.split("-")[1]}</span>`;
   renderDayNotes();
 }
 
 function renderDayNotes() {
   const container = document.getElementById('dayNotesList'); container.innerHTML = '';
   const filtered = localNotes.filter(n => n.date === selectedDateStr);
-  if (filtered.length === 0) {
-    container.innerHTML = '<div class="text-muted small text-center my-3">Chưa có ý tưởng/dự định nào.</div>'; return;
-  }
+  if (filtered.length === 0) { container.innerHTML = '<div class="text-muted small text-center my-3">Chưa có dự định nào.</div>'; return; }
   filtered.forEach(n => {
-    const div = document.createElement('div');
-    div.className = 'd-flex align-items-center justify-content-between bg-white p-2 mb-2 border rounded shadow-sm';
-    div.innerHTML = `
-    <div class="flex-grow-1" onclick="openEditModal('note', '${n.id}')">
-      <strong>📌 ${n.content}</strong>
-      <div class="text-muted" style="font-size: 11px;">Tag: ${n.tag} | ⏰ ${n.time}</div>
-    </div>
-    <button class="btn btn-sm text-danger" onclick="deleteNote('${n.id}')"><i class="fa-solid fa-trash-can"></i></button>`;
-    container.appendChild(div);
+    container.insertAdjacentHTML('beforeend', `<div class="d-flex align-items-center justify-content-between bg-white p-2 mb-2 border rounded shadow-sm"><div class="flex-grow-1" onclick="openEditModal('note', '${n.id}')"><strong>📌 ${n.content}</strong><div class="text-muted" style="font-size: 11px;">Tag: ${n.tag} | ⏰ ${n.time}</div></div><button class="btn btn-sm text-danger" onclick="deleteNote('${n.id}')"><i class="fa-solid fa-trash-can"></i></button></div>`);
   });
 }
 
 function addNote() {
   const content = document.getElementById('noteInput').value.trim();
-  const time = document.getElementById('noteTimeInput').value || "00:00";
-  const tag = document.getElementById('noteTagInput').value;
-
-  if (!content || !selectedDateStr) { alert("Vui lòng nhập đủ thông tin và chọn ngày!"); return; }
-
-  localNotes.push({ date: selectedDateStr, content: content, time: time, tag: tag, id: "NOTE_" + new Date().getTime() });
-  saveToLocalWeb();
-  refreshAllViews();
-  document.getElementById('noteInput').value = '';
-  pushNotesToSheet();
+  if (!content || !selectedDateStr) return;
+  localNotes.push({ date: selectedDateStr, content: content, time: document.getElementById('noteTimeInput').value || "00:00", tag: document.getElementById('noteTagInput').value, id: "NOTE_" + new Date().getTime() });
+  saveToLocalWeb(); refreshAllViews(); document.getElementById('noteInput').value = ''; pushNotesToSheet();
 }
 
 function deleteNote(id) {
-  const deletedNote = localNotes.find(n => n.id === id);
-  if (!deletedNote) return;
-
-  localNotes = localNotes.filter(n => n.id !== id);
-  saveToLocalWeb();
-  refreshAllViews();
-
-  showUndoToast(`Đã xóa ý tưởng: "${deletedNote.content}"`, function() {
-    localNotes.push(deletedNote);
-    saveToLocalWeb();
-    refreshAllViews();
-    pushNotesToSheet();
-  });
+  const deletedNote = localNotes.find(n => n.id === id); if (!deletedNote) return;
+  localNotes = localNotes.filter(n => n.id !== id); saveToLocalWeb(); refreshAllViews();
+  showUndoToast(`Đã xóa ý tưởng: "${deletedNote.content}"`, function() { localNotes.push(deletedNote); saveToLocalWeb(); refreshAllViews(); pushNotesToSheet(); });
   pushNotesToSheet();
 }
 
 function openEditModal(type, id) {
-  document.getElementById('editId').value = id;
-  document.getElementById('editType').value = type;
-  const obj = (type === 'task') ? localTasks.find(t => t.id === id) : localNotes.find(n => n.id === id);
-  if (!obj) return;
-  
-  document.getElementById('editModalTitle').innerText = type === 'task' ? "CHỈNH SỬA NHIỆM VỤ" : "CHỈNH SỬA Ý TƯỞNG LỊCH NĂM";
-  document.getElementById('editContent').value = obj.content;
-  document.getElementById('editDate').value = obj.date;
-  document.getElementById('editTime').value = obj.time || "00:00";
-  document.getElementById('editTag').value = obj.tag || "🔱 Quan trọng";
+  document.getElementById('editId').value = id; document.getElementById('editType').value = type;
+  const obj = (type === 'task') ? localTasks.find(t => t.id === id) : localNotes.find(n => n.id === id); if (!obj) return;
+  document.getElementById('editContent').value = obj.content; document.getElementById('editDate').value = obj.date;
+  document.getElementById('editTime').value = obj.time || "00:00"; document.getElementById('editTag').value = obj.tag || "🔱 Quan trọng";
   bsEditModal.show();
 }
 
 function saveEditData() {
-  const id = document.getElementById('editId').value;
-  const type = document.getElementById('editType').value;
-  const content = document.getElementById('editContent').value.trim();
-  const date = document.getElementById('editDate').value;
-  const time = document.getElementById('editTime').value;
-  const tag = document.getElementById('editTag').value;
-
-  if (!content || !date) return;
-  bsEditModal.hide();
-
-  if (type === 'task') {
-    localTasks = localTasks.map(t => (t.id === id ? { ...t, content, date, time, tag } : t));
-    pushTasksToSheet();
-  } else {
-    localNotes = localNotes.map(n => (n.id === id ? { ...n, content, date, time, tag } : n));
-    pushNotesToSheet();
-  }
-  saveToLocalWeb();
-  refreshAllViews();
+  const id = document.getElementById('editId').value; const type = document.getElementById('editType').value;
+  const content = document.getElementById('editContent').value.trim(); const date = document.getElementById('editDate').value;
+  if (!content || !date) return; bsEditModal.hide();
+  if (type === 'task') { localTasks = localTasks.map(t => (t.id === id ? { ...t, content, date, time:document.getElementById('editTime').value, tag:document.getElementById('editTag').value } : t)); pushTasksToSheet(); }
+  else { localNotes = localNotes.map(n => (n.id === id ? { ...n, content, date, time:document.getElementById('editTime').value, tag:document.getElementById('editTag').value } : n)); pushNotesToSheet(); }
+  saveToLocalWeb(); refreshAllViews();
 }
 
 function showUndoToast(message, undoCallback) {
-  const container = document.getElementById('undoToastContainer');
-  const toastId = 'toast-' + new Date().getTime();
+  const container = document.getElementById('undoToastContainer'); const toastId = 'toast-' + new Date().getTime();
   container.insertAdjacentHTML('beforeend', `<div class="undo-toast" id="${toastId}"><span>${message}</span><button class="btn-undo-action" id="btn-undo-${toastId}">HOÀN TÁC</button></div>`);
-  
   document.getElementById(`btn-undo-${toastId}`).onclick = function() { undoCallback(); document.getElementById(toastId).remove(); };
   setTimeout(() => { if (document.getElementById(toastId)) document.getElementById(toastId).remove(); }, 6000);
 }
 
+function renderDashboard() {
+  const startStr = document.getElementById('dashRangeStart').value; const endStr = document.getElementById('dashRangeEnd').value;
+  filteredDashboardTasks = (document.getElementById('dashTimeFilter').value === 'range' && startStr && endStr) ? localTasks.filter(t => t.date >= startStr && t.date <= endStr) : localTasks;
+  filteredDashboardNotes = (document.getElementById('dashTimeFilter').value === 'range' && startStr && endStr) ? localNotes.filter(n => n.date >= startStr && n.date <= endStr) : localNotes;
+
+  const total = filteredDashboardTasks.length; const done = filteredDashboardTasks.filter(t => t.status === "Đã xong").length;
+  document.getElementById('dashTotalTasks').innerText = total; document.getElementById('dashDoneTasks').innerText = done;
+  document.getElementById('dashPendingTasks').innerText = total - done; document.getElementById('dashTotalNotes').innerText = filteredDashboardNotes.length;
+  let percent = total > 0 ? Math.round((done / total) * 100) : 0;
+  document.getElementById('dashProgressBar').style.width = percent + '%'; document.getElementById('dashProgressBar').innerText = percent + '%';
+}
+
 function showDashboardDetails(type) {
-  const titleEl = document.getElementById('detailModalTitle');
-  const bodyEl = document.getElementById('detailModalBody');
+  const titleEl = document.getElementById('detailModalTitle'); const bodyEl = document.getElementById('detailModalBody');
   bodyEl.innerHTML = ''; let html = '';
-  
   if (type === 'all' || type === 'done' || type === 'pending') {
     let list = filteredDashboardTasks;
     if (type === 'done') list = filteredDashboardTasks.filter(t => t.status === "Đã xong");
     if (type === 'pending') list = filteredDashboardTasks.filter(t => t.status !== "Đã xong");
-    
-    titleEl.innerText = "DANH SÁCH NHIỆM VỤ CHI TIẾT";
-    list.forEach(t => {
-      html += `<div class="pop-list-item"><strong>[${t.status}] ${t.content}</strong><br><small>Ngày: ${t.date} | Tag: ${t.tag}</small></div>`;
-    });
+    titleEl.innerText = "CHI TIẾT NHIỆM VỤ";
+    list.forEach(t => { html += `<div class="pop-list-item"><strong>[${t.status}] ${t.content}</strong><br><small>Ngày: ${t.date}</small></div>`; });
   } else {
-    titleEl.innerText = "Ý TƯỞNG ẤP Ủ TRONG TƯƠNG LAI";
-    filteredDashboardNotes.forEach(n => {
-      html += `<div class="pop-list-item"><strong>📌 ${n.content}</strong><br><small>Dự kiến ngày: ${n.date} | Cấp: ${n.tag}</small></div>`;
-    });
+    titleEl.innerText = "Ý TƯỞNG TƯƠNG LAI";
+    filteredDashboardNotes.forEach(n => { html += `<div class="pop-list-item"><strong>📌 ${n.content}</strong><br><small>Dự kiến: ${n.date}</small></div>`; });
   }
-  bodyEl.innerHTML = html || '<div class="text-center p-3 text-muted">Trống không!</div>';
-  bsDetailModal.show();
+  bodyEl.innerHTML = html || '<div class="text-center p-3 text-muted">Trống không!</div>'; bsDetailModal.show();
 }
 
 function switchView(viewName, element) {
   document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
   document.getElementById('view-' + viewName).classList.add('active');
   document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
-  element.classList.add('active');
-  const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('sidebarMenu'));
-  if(offcanvas) offcanvas.hide();
-  if (viewName === 'dashboard') renderDashboard();
+  element.classList.add('active'); if (viewName === 'dashboard') renderDashboard();
 }
 </script>
 </body>
