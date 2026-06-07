@@ -536,11 +536,11 @@ function startLiveClock() {
 function extractSheetId(inputStr) {
   if (!inputStr) return "";
   const trimmed = inputStr.trim();
-  // Khớp Regex tìm chuỗi kí tự nằm giữa /d/ và /edit
   const match = trimmed.match(/\/d\/([a-zA-Z0-9-_]+)/);
   return match ? match[1] : trimmed;
 }
 
+// KHỞI TẠO HỆ THỐNG: Đọc dữ liệu từ LocalStorage (bộ nhớ Web) ra dùng ngay lập tức
 document.addEventListener("DOMContentLoaded", function() {
   bsEditModal = new bootstrap.Modal(document.getElementById('editModal'));
   bsDetailModal = new bootstrap.Modal(document.getElementById('detailDashboardModal'));
@@ -551,12 +551,15 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById('dashRangeEnd').value = getFormatDateString(nextMonth);
 
   appScriptApiUrl = localStorage.getItem("hyhy_appscript_url") || "";
-  // Khôi phục link/ID đã lưu từ LocalStorage để hiển thị lên Form
   const savedSheetInput = localStorage.getItem("hyhy_googlesheet_input") || "";
   googleSheetId = localStorage.getItem("hyhy_googlesheet_id") || "";
   
   document.getElementById("appScriptUrlInput").value = appScriptApiUrl;
   document.getElementById("googleSheetIdInput").value = savedSheetInput || googleSheetId;
+
+  // ĐỌC DỮ LIỆU CŨ ĐÃ LƯU TRÊN WEB LÊN TRƯỚC (Để không bị trắng trang web)
+  localTasks = JSON.parse(localStorage.getItem("hyhy_local_tasks")) || [];
+  localNotes = JSON.parse(localStorage.getItem("hyhy_local_notes")) || [];
 
   const savedToggle = localStorage.getItem("hyhy_show_completed");
   if(savedToggle !== null) {
@@ -565,6 +568,8 @@ document.addEventListener("DOMContentLoaded", function() {
   updateToggleButtonUI();
 
   resetToToday();
+  
+  // Tải dữ liệu mới từ Server đè vào, nếu lỗi mạng thì vẫn xài data local ở trên bình thường
   loadDataFromServer(true); 
   renderMonthsList();
   startLiveClock();
@@ -587,7 +592,6 @@ function saveGoogleSheetId() {
   const inputVal = document.getElementById("googleSheetIdInput").value.trim();
   localStorage.setItem("hyhy_googlesheet_input", inputVal);
   
-  // Xử lý bóc tách thông minh: Link dài biến thành ID ngắn, ID ngắn giữ nguyên
   const extractedId = extractSheetId(inputVal);
   localStorage.setItem("hyhy_googlesheet_id", extractedId);
   googleSheetId = extractedId;
@@ -627,34 +631,41 @@ function resetToToday() {
   renderTasks(localTasks);
 }
 
+// Cập nhật dữ liệu từ server và ghi đè an toàn vào Web
 function loadDataFromServer(shouldShowSpinner) {
-  if (!appScriptApiUrl || !googleSheetId) {
-    console.warn("Chưa cấu hình đầy đủ API hoặc ID Google Sheet.");
-    return;
-  }
+  if (!appScriptApiUrl || !googleSheetId) return;
   if (shouldShowSpinner) showLoading(true);
   
   fetch(`${appScriptApiUrl}?action=getAppData&sheetId=${googleSheetId}`)
     .then(res => {
-      if (!res.ok) throw new Error("Mã trạng thái kết nối lỗi: " + res.status);
+      if (!res.ok) throw new Error();
       return res.text();
     })
     .then(text => {
       if (!text || text.trim() === "") return;
       const data = JSON.parse(text);
       if (data.error) {
-        alert("Lỗi từ hệ thống: " + data.error);
+        console.error("Lỗi kịch bản:", data.error);
         if (shouldShowSpinner) showLoading(false);
         return;
       }
-      localTasks = data.tasks || [];
-      localNotes = data.notes || [];
+      
+      // CHỈ CẬP NHẬT KHI SERVER CÓ DATA HỢP LỆ
+      if (data.tasks) {
+        localTasks = data.tasks;
+        localStorage.setItem("hyhy_local_tasks", JSON.stringify(localTasks));
+      }
+      if (data.notes) {
+        localNotes = data.notes;
+        localStorage.setItem("hyhy_local_notes", JSON.stringify(localNotes));
+      }
+      
       refreshAllViews();
       if (shouldShowSpinner) showLoading(false);
     })
     .catch(err => {
       if (shouldShowSpinner) showLoading(false);
-      console.error("Lỗi kết nối long mạch: ", err);
+      console.warn("Đang chạy ở chế độ lưu trữ Web (Offline Mode).");
     });
 }
 
@@ -670,8 +681,14 @@ function syncDataFromSheetSilently() {
       if (text && text.trim() !== "") {
         const data = JSON.parse(text);
         if(!data.error) {
-          localTasks = data.tasks || [];
-          localNotes = data.notes || [];
+          if (data.tasks) {
+            localTasks = data.tasks;
+            localStorage.setItem("hyhy_local_tasks", JSON.stringify(localTasks));
+          }
+          if (data.notes) {
+            localNotes = data.notes;
+            localStorage.setItem("hyhy_local_notes", JSON.stringify(localNotes));
+          }
           refreshAllViews();
         }
       }
@@ -682,13 +699,18 @@ function syncDataFromSheetSilently() {
     });
 }
 
+// Ghi dữ liệu: Đè dữ liệu cục bộ vào LocalStorage TRƯỚC rồi đẩy lên Cloud sau
 function postDataToSheet(actionType, dataPayload) {
-  if (!appScriptApiUrl || !googleSheetId) {
-    alert("Vui lòng cấu hình đầy đủ Link API và ID Google Sheet tại thanh điều hành!");
-    return;
+  // LƯU TRỮ CỨNG VÀO WEB TRƯỚC (Bảo đảm dữ liệu luôn ở lại Web)
+  if (actionType === "updateTasks") {
+    localStorage.setItem("hyhy_local_tasks", JSON.stringify(dataPayload));
+  } else if (actionType === "updateNotes") {
+    localStorage.setItem("hyhy_local_notes", JSON.stringify(dataPayload));
   }
   
-  showLoading(true);
+  refreshAllViews();
+
+  if (!appScriptApiUrl || !googleSheetId) return;
   
   const bodyPayload = {
     action: actionType,
@@ -699,38 +721,31 @@ function postDataToSheet(actionType, dataPayload) {
   fetch(appScriptApiUrl, {
     method: "POST",
     mode: "cors",
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8" 
-    },
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(bodyPayload)
   })
     .then(res => {
-      if (!res.ok) {
-        throw new Error("Cổng kết nối Apps Script phản hồi lỗi: " + res.status);
-      }
+      if (!res.ok) throw new Error();
       return res.text();
     })
     .then(text => {
-      if (!text || text.trim() === "") {
-        loadDataFromServer(false);
-        showLoading(false);
-        return;
-      }
-      
+      if (!text || text.trim() === "") return;
       const data = JSON.parse(text);
-      if (data.error) {
-        alert("Lỗi đồng bộ: " + data.error);
-      } else {
-        localTasks = data.tasks || [];
-        localNotes = data.notes || [];
+      if (!data.error) {
+        // Cập nhật lại mảng chuẩn chỉnh sau khi đồng bộ thành công
+        if (data.tasks) {
+          localTasks = data.tasks;
+          localStorage.setItem("hyhy_local_tasks", JSON.stringify(localTasks));
+        }
+        if (data.notes) {
+          localNotes = data.notes;
+          localStorage.setItem("hyhy_local_notes", JSON.stringify(localNotes));
+        }
         refreshAllViews();
       }
-      showLoading(false);
     })
     .catch(err => {
-      console.error("Lỗi kết nối đồng bộ POST: ", err);
-      loadDataFromServer(false);
-      showLoading(false);
+      console.warn("Lỗi đồng bộ Cloud, dữ liệu hiện tại đã được giữ an toàn trên Web.");
     });
 }
 
@@ -888,12 +903,10 @@ function addNewTask() {
   };
 
   localTasks.push(newTask);
-  refreshAllViews();
-
+  postDataToSheet("updateTasks", localTasks);
+  
   document.getElementById('taskContent').value = '';
   document.getElementById('taskTime').value = '';
-
-  postDataToSheet("updateTasks", localTasks);
 }
 
 function deleteTask(id) {
@@ -901,11 +914,9 @@ function deleteTask(id) {
   if (!deletedTask) return;
 
   localTasks = localTasks.filter(t => t.id !== id);
-  refreshAllViews();
-
+  
   showUndoToast(`Đã xóa: "${deletedTask.content}"`, function() {
     localTasks.push(deletedTask);
-    refreshAllViews();
     postDataToSheet("updateTasks", localTasks);
   });
 
@@ -918,7 +929,6 @@ function toggleStatus(id) {
     return t;
   });
   
-  refreshAllViews();
   postDataToSheet("updateTasks", localTasks);
 }
 
@@ -1067,12 +1077,10 @@ function addNote() {
   };
 
   localNotes.push(newNote);
-  refreshAllViews();
-
+  postDataToSheet("updateNotes", localNotes);
+  
   document.getElementById('noteInput').value = '';
   document.getElementById('noteTimeInput').value = '00:00';
-
-  postDataToSheet("updateNotes", localNotes);
 }
 
 function deleteNote(id) {
@@ -1080,11 +1088,9 @@ function deleteNote(id) {
   if (!deletedNote) return;
 
   localNotes = localNotes.filter(n => n.id !== id);
-  refreshAllViews();
-
+  
   showUndoToast(`Đã xóa ý tưởng: "${deletedNote.content}"`, function() {
     localNotes.push(deletedNote);
-    refreshAllViews();
     postDataToSheet("updateNotes", localNotes);
   });
 
@@ -1134,7 +1140,6 @@ function saveEditData() {
       }
       return t;
     });
-    refreshAllViews();
     postDataToSheet("updateTasks", localTasks);
 
   } else if (type === 'note') {
@@ -1144,7 +1149,6 @@ function saveEditData() {
       }
       return n;
     });
-    refreshAllViews();
     postDataToSheet("updateNotes", localNotes);
   }
 }
