@@ -241,9 +241,15 @@ body {
 <a href="#" class="sidebar-link" id="menu-link-dashboard" onclick="switchView('dashboard', this)"><i class="fa-solid fa-chart-pie"></i> Báo cáo Dashboard</a>
 
 <div class="p-3 mt-4 border-top mx-2">
-  <label class="fw-bold small text-muted mb-1"><i class="fa-solid fa-link"></i> LIÊN KẾT APP SCRIPT API:</label>
-  <input type="text" id="appScriptUrlInput" class="form-control form-control-sm" placeholder="Dán link Web App tại đây..." onchange="saveAppScriptUrl()">
-  <small class="text-muted" style="font-size:11px;">Dữ liệu sẽ tự động lưu về Google Sheets thông qua liên kết này.</small>
+  <div class="mb-3">
+    <label class="fw-bold small text-muted mb-1"><i class="fa-solid fa-link"></i> LINK GOOGLE APPS SCRIPT API:</label>
+    <input type="text" id="appScriptUrlInput" class="form-control form-control-sm" placeholder="Dán link Web App tại đây..." onchange="saveAppScriptUrl()">
+  </div>
+  <div>
+    <label class="fw-bold small text-muted mb-1"><i class="fa-solid fa-file-excel"></i> MÃ ĐỊNH DANH GOOGLE SHEET (ID):</label>
+    <input type="text" id="googleSheetIdInput" class="form-control form-control-sm" placeholder="Dán ID Google Sheet tại đây..." onchange="saveGoogleSheetId()">
+  </div>
+  <small class="text-muted d-block mt-2" style="font-size:11px;">Hệ thống sẽ đồng bộ hóa 2 chiều tự động dựa trên cấu hình độc lập này.</small>
 </div>
 </div>
 </div>
@@ -452,8 +458,9 @@ let filteredDashboardNotes = [];
 let currentSelectedDate = new Date();
 let isPollingActive = false; 
 
-// Biến lưu trữ link API kết nối đến Google Sheets
+// Thông tin liên kết độc lập
 let appScriptApiUrl = "";
+let googleSheetId = "";
 
 const monthPastelColors = [
   { background: "#E8F0FE", text: "#1A567D", label: "Xanh đại dương nhẹ" },  
@@ -510,16 +517,19 @@ document.addEventListener("DOMContentLoaded", function() {
   let nextMonth = new Date(); nextMonth.setMonth(nextMonth.getMonth() + 1);
   document.getElementById('dashRangeEnd').value = getFormatDateString(nextMonth);
 
-  // Khôi phục URL đã lưu trong trình duyệt cũ (nếu có)
+  // Khôi phục cài đặt cũ từ bộ nhớ trình duyệt
   appScriptApiUrl = localStorage.getItem("hyhy_appscript_url") || "";
+  googleSheetId = localStorage.getItem("hyhy_googlesheet_id") || "";
+  
   document.getElementById("appScriptUrlInput").value = appScriptApiUrl;
+  document.getElementById("googleSheetIdInput").value = googleSheetId;
 
   resetToToday();
   loadDataFromServer(true); 
   renderMonthsList();
   startLiveClock();
   
-  // VÒNG LẶP KIỂM TRA ĐỒNG BỘ NGẦM
+  // VÒNG LẶP KIỂM TRA ĐỒNG BỘ NGẦM (15 giây / lần)
   setInterval(function() {
     if (!isPollingActive) {
       syncDataFromSheetSilently();
@@ -531,6 +541,13 @@ function saveAppScriptUrl() {
   const url = document.getElementById("appScriptUrlInput").value.trim();
   localStorage.setItem("hyhy_appscript_url", url);
   appScriptApiUrl = url;
+  loadDataFromServer(true);
+}
+
+function saveGoogleSheetId() {
+  const id = document.getElementById("googleSheetIdInput").value.trim();
+  localStorage.setItem("hyhy_googlesheet_id", id);
+  googleSheetId = id;
   loadDataFromServer(true);
 }
 
@@ -566,17 +583,22 @@ function resetToToday() {
   renderTasks(localTasks);
 }
 
-// FETCH DATA TỪ WEB API
+// FETCH DATA TỪ WEB API GỬI KÈM SHEET ID
 function loadDataFromServer(shouldShowSpinner) {
-  if (!appScriptApiUrl) {
-    console.warn("Chưa cấu hình Link App Script API hoàng gia.");
+  if (!appScriptApiUrl || !googleSheetId) {
+    console.warn("Chưa cấu hình đầy đủ API hoặc ID Google Sheet.");
     return;
   }
   if (shouldShowSpinner) showLoading(true);
   
-  fetch(`${appScriptApiUrl}?action=getAppData`)
+  fetch(`${appScriptApiUrl}?action=getAppData&sheetId=${googleSheetId}`)
     .then(res => res.json())
     .then(data => {
+      if (data.error) {
+        alert("Lỗi từ hệ thống: " + data.error);
+        if (shouldShowSpinner) showLoading(false);
+        return;
+      }
       localTasks = data.tasks || [];
       localNotes = data.notes || [];
       refreshAllViews();
@@ -589,14 +611,16 @@ function loadDataFromServer(shouldShowSpinner) {
 }
 
 function syncDataFromSheetSilently() {
-  if (!appScriptApiUrl) return;
+  if (!appScriptApiUrl || !googleSheetId) return;
   isPollingActive = true;
-  fetch(`${appScriptApiUrl}?action=getAppData`)
+  fetch(`${appScriptApiUrl}?action=getAppData&sheetId=${googleSheetId}`)
     .then(res => res.json())
     .then(data => {
-      localTasks = data.tasks || [];
-      localNotes = data.notes || [];
-      refreshAllViews();
+      if(!data.error) {
+        localTasks = data.tasks || [];
+        localNotes = data.notes || [];
+        refreshAllViews();
+      }
       isPollingActive = false;
     })
     .catch(() => {
@@ -605,18 +629,18 @@ function syncDataFromSheetSilently() {
 }
 
 function postDataToSheet(actionType, dataPayload) {
-  if (!appScriptApiUrl) {
-    alert("Vui lòng dán link App Script kết nối tại thanh điều hành bên trái!");
+  if (!appScriptApiUrl || !googleSheetId) {
+    alert("Vui lòng cấu hình đầy đủ Link API và ID Google Sheet tại thanh điều hành!");
     return;
   }
   
   fetch(appScriptApiUrl, {
     method: "POST",
-    mode: "no-cors", // Tránh lỗi chặn CORS từ trình duyệt ngoài Google
+    mode: "no-cors",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: actionType, data: dataPayload })
+    body: JSON.stringify({ action: actionType, sheetId: googleSheetId, data: dataPayload })
   }).then(() => {
-    // Kích hoạt nạp lại ngầm sau 1 giây để kéo dữ liệu STT chuẩn từ Sheet về
+    // Nạp lại ngầm sau 1.2 giây để kéo dữ liệu mới nhất
     setTimeout(() => { syncDataFromSheetSilently(); }, 1200);
   });
 }
@@ -1127,6 +1151,7 @@ function showDashboardDetails(type) {
   bsDetailModal.show();
 }
 
+// BẬT CHỨC NĂNG CHUYỂN ĐỔI VIEW GIAO DIỆN
 function switchView(viewName, element) {
   document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
   document.getElementById('view-' + viewName).classList.add('active');
