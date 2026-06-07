@@ -262,8 +262,8 @@ body {
     <input type="text" id="appScriptUrlInput" class="form-control form-control-sm" placeholder="Dán link Web App tại đây..." onchange="saveAppScriptUrl()">
   </div>
   <div>
-    <label class="fw-bold small text-muted mb-1"><i class="fa-solid fa-file-excel"></i> MÃ ĐỊNH DANH GOOGLE SHEET (ID):</label>
-    <input type="text" id="googleSheetIdInput" class="form-control form-control-sm" placeholder="Dán ID Google Sheet tại đây..." onchange="saveGoogleSheetId()">
+    <label class="fw-bold small text-muted mb-1"><i class="fa-solid fa-file-excel"></i> LIÊN KẾT GOOGLE SHEET (LINK HOẶC ID):</label>
+    <input type="text" id="googleSheetIdInput" class="form-control form-control-sm" placeholder="Dán nguyên Link hoặc ID Google Sheet tại đây..." onchange="saveGoogleSheetId()">
   </div>
   <small class="text-muted d-block mt-2" style="font-size:11px;">Hệ thống sẽ đồng bộ hóa 2 chiều tự động dựa trên cấu hình độc lập này.</small>
 </div>
@@ -532,6 +532,15 @@ function startLiveClock() {
   }, 1000);
 }
 
+// HÀM MỚI: Tự động trích xuất chuỗi ID kĩ thuật kể cả khi dán nguyên link dài của Google Sheet
+function extractSheetId(inputStr) {
+  if (!inputStr) return "";
+  const trimmed = inputStr.trim();
+  // Khớp Regex tìm chuỗi kí tự nằm giữa /d/ và /edit
+  const match = trimmed.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  return match ? match[1] : trimmed;
+}
+
 document.addEventListener("DOMContentLoaded", function() {
   bsEditModal = new bootstrap.Modal(document.getElementById('editModal'));
   bsDetailModal = new bootstrap.Modal(document.getElementById('detailDashboardModal'));
@@ -541,14 +550,14 @@ document.addEventListener("DOMContentLoaded", function() {
   let nextMonth = new Date(); nextMonth.setMonth(nextMonth.getMonth() + 1);
   document.getElementById('dashRangeEnd').value = getFormatDateString(nextMonth);
 
-  // Khôi phục cài đặt cũ từ bộ nhớ trình duyệt
   appScriptApiUrl = localStorage.getItem("hyhy_appscript_url") || "";
+  // Khôi phục link/ID đã lưu từ LocalStorage để hiển thị lên Form
+  const savedSheetInput = localStorage.getItem("hyhy_googlesheet_input") || "";
   googleSheetId = localStorage.getItem("hyhy_googlesheet_id") || "";
   
   document.getElementById("appScriptUrlInput").value = appScriptApiUrl;
-  document.getElementById("googleSheetIdInput").value = googleSheetId;
+  document.getElementById("googleSheetIdInput").value = savedSheetInput || googleSheetId;
 
-  // Đọc cấu hình bộ lọc ẩn hiện task từ local
   const savedToggle = localStorage.getItem("hyhy_show_completed");
   if(savedToggle !== null) {
     showCompletedTasks = (savedToggle === 'true');
@@ -560,7 +569,6 @@ document.addEventListener("DOMContentLoaded", function() {
   renderMonthsList();
   startLiveClock();
   
-  // VÒNG LẶP KIỂM TRA ĐỒNG BỘ NGẦM (15 giây / lần)
   setInterval(function() {
     if (!isPollingActive) {
       syncDataFromSheetSilently();
@@ -576,9 +584,14 @@ function saveAppScriptUrl() {
 }
 
 function saveGoogleSheetId() {
-  const id = document.getElementById("googleSheetIdInput").value.trim();
-  localStorage.setItem("hyhy_googlesheet_id", id);
-  googleSheetId = id;
+  const inputVal = document.getElementById("googleSheetIdInput").value.trim();
+  localStorage.setItem("hyhy_googlesheet_input", inputVal);
+  
+  // Xử lý bóc tách thông minh: Link dài biến thành ID ngắn, ID ngắn giữ nguyên
+  const extractedId = extractSheetId(inputVal);
+  localStorage.setItem("hyhy_googlesheet_id", extractedId);
+  googleSheetId = extractedId;
+  
   loadDataFromServer(true);
 }
 
@@ -614,7 +627,6 @@ function resetToToday() {
   renderTasks(localTasks);
 }
 
-// FETCH DATA TỪ WEB API
 function loadDataFromServer(shouldShowSpinner) {
   if (!appScriptApiUrl || !googleSheetId) {
     console.warn("Chưa cấu hình đầy đủ API hoặc ID Google Sheet.");
@@ -623,8 +635,13 @@ function loadDataFromServer(shouldShowSpinner) {
   if (shouldShowSpinner) showLoading(true);
   
   fetch(`${appScriptApiUrl}?action=getAppData&sheetId=${googleSheetId}`)
-    .then(res => res.json())
-    .then(data => {
+    .then(res => {
+      if (!res.ok) throw new Error("Mã trạng thái kết nối lỗi: " + res.status);
+      return res.text();
+    })
+    .then(text => {
+      if (!text || text.trim() === "") return;
+      const data = JSON.parse(text);
       if (data.error) {
         alert("Lỗi từ hệ thống: " + data.error);
         if (shouldShowSpinner) showLoading(false);
@@ -641,17 +658,22 @@ function loadDataFromServer(shouldShowSpinner) {
     });
 }
 
-// SỬA ĐỔI: Ép hàm sync ngầm luôn gửi đúng ID Google Sheet lưu trên giao diện web
 function syncDataFromSheetSilently() {
   if (!appScriptApiUrl || !googleSheetId) return;
   isPollingActive = true;
   fetch(`${appScriptApiUrl}?action=getAppData&sheetId=${googleSheetId}`)
-    .then(res => res.json())
-    .then(data => {
-      if(!data.error) {
-        localTasks = data.tasks || [];
-        localNotes = data.notes || [];
-        refreshAllViews();
+    .then(res => {
+      if (!res.ok) throw new Error();
+      return res.text();
+    })
+    .then(text => {
+      if (text && text.trim() !== "") {
+        const data = JSON.parse(text);
+        if(!data.error) {
+          localTasks = data.tasks || [];
+          localNotes = data.notes || [];
+          refreshAllViews();
+        }
       }
       isPollingActive = false;
     })
@@ -682,8 +704,20 @@ function postDataToSheet(actionType, dataPayload) {
     },
     body: JSON.stringify(bodyPayload)
   })
-    .then(res => res.json())
-    .then(data => {
+    .then(res => {
+      if (!res.ok) {
+        throw new Error("Cổng kết nối Apps Script phản hồi lỗi: " + res.status);
+      }
+      return res.text();
+    })
+    .then(text => {
+      if (!text || text.trim() === "") {
+        loadDataFromServer(false);
+        showLoading(false);
+        return;
+      }
+      
+      const data = JSON.parse(text);
       if (data.error) {
         alert("Lỗi đồng bộ: " + data.error);
       } else {
@@ -695,8 +729,8 @@ function postDataToSheet(actionType, dataPayload) {
     })
     .catch(err => {
       console.error("Lỗi kết nối đồng bộ POST: ", err);
+      loadDataFromServer(false);
       showLoading(false);
-      refreshAllViews();
     });
 }
 
